@@ -10,6 +10,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use LaraArabDev\Recordkeeper\Attributes\AuditJob;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Support\HttpTracker;
 
 final class RecordJobAudit
 {
@@ -51,12 +52,16 @@ final class RecordJobAudit
             return;
         }
 
-        $this->write('job.processing', $jobClass, [
+        $audit = $this->write('job.processing', $jobClass, [
             'job'        => $jobClass,
             'connection' => $event->connectionName,
             'queue'      => $event->job->getQueue(),
             'attempts'   => $event->job->attempts(),
         ], $attr?->tags ?? []);
+
+        if ($audit !== null && config('recordkeeper.http.enabled', false)) {
+            app(HttpTracker::class)->setContext($audit->id);
+        }
     }
 
     /** @param  JobProcessed  $event */
@@ -64,6 +69,10 @@ final class RecordJobAudit
     {
         $jobClass = $this->resolveJobClass($event->job);
         $attr     = $this->attribute($jobClass);
+
+        if (config('recordkeeper.http.enabled', false)) {
+            app(HttpTracker::class)->clearContext();
+        }
 
         if (! $this->shouldAudit($jobClass, $attr) || ($attr && ! $attr->processed)) {
             return;
@@ -82,6 +91,10 @@ final class RecordJobAudit
     {
         $jobClass = $this->resolveJobClass($event->job);
         $attr     = $this->attribute($jobClass);
+
+        if (config('recordkeeper.http.enabled', false)) {
+            app(HttpTracker::class)->clearContext();
+        }
 
         if (! $this->shouldAudit($jobClass, $attr) || ($attr && ! $attr->failed)) {
             return;
@@ -119,9 +132,9 @@ final class RecordJobAudit
      * @param  string  $jobClass
      * @param  array   $context
      * @param  array   $tags
-     * @return void
+     * @return ?Audit
      */
-    private function write(string $eventName, string $jobClass, array $context, array $tags): void
+    private function write(string $eventName, string $jobClass, array $context, array $tags): ?Audit
     {
         $audit = new Audit();
         $audit->fill([
@@ -136,6 +149,8 @@ final class RecordJobAudit
             'context'        => $context,
         ]);
         $audit->save();
+
+        return $audit;
     }
 
     /**

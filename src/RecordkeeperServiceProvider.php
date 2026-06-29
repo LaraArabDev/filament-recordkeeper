@@ -24,7 +24,9 @@ use LaraArabDev\Recordkeeper\Http\Middleware\AuditRoute;
 use LaraArabDev\Recordkeeper\Listeners\RecordCommandAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordEventAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordJobAudit;
+use LaraArabDev\Recordkeeper\Listeners\RecordOutboundHttp;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
+use LaraArabDev\Recordkeeper\Support\HttpTracker;
 use LaraArabDev\Recordkeeper\Support\Rollback;
 
 class RecordkeeperServiceProvider extends ServiceProvider
@@ -35,6 +37,7 @@ class RecordkeeperServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/recordkeeper.php', 'recordkeeper');
 
         $this->app->singleton(Recordkeeper::class);
+        $this->app->singleton(HttpTracker::class);
 
         $this->app->bind(Rollbacker::class, Rollback::class);
         $this->app->bind(AuditQueryContract::class, AuditQuery::class);
@@ -130,5 +133,9 @@ class RecordkeeperServiceProvider extends ServiceProvider
         }
 
         $this->app['events']->listen('*', [RecordEventAudit::class, 'handle']);
+
+        if (config('recordkeeper.http.enabled', false)) {
+            $this->app['events']->subscribe(RecordOutboundHttp::class);
+        }
     }
 }

@@ -8,6 +8,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\KeyValueEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -265,6 +266,31 @@ class AuditResource extends Resource
                 Section::make('Context')
                     ->schema([KeyValueEntry::make('context')])
                     ->visible(fn (Audit $record) => ! empty($record->context)),
+
+                Section::make('Outbound HTTP Requests')
+                    ->schema([
+                        RepeatableEntry::make('httpRequests')
+                            ->schema([
+                                TextEntry::make('method')->badge(),
+                                TextEntry::make('url'),
+                                TextEntry::make('status_code')
+                                    ->badge()
+                                    ->color(fn (?int $state): string => match (true) {
+                                        $state === null    => 'gray',
+                                        $state < 300       => 'success',
+                                        $state < 400       => 'warning',
+                                        default            => 'danger',
+                                    }),
+                                TextEntry::make('duration_ms')->suffix(' ms'),
+                                TextEntry::make('failed')
+                                    ->badge()
+                                    ->color(fn (bool $state): string => $state ? 'danger' : 'success')
+                                    ->formatStateUsing(fn (bool $state): string => $state ? 'Failed' : 'OK'),
+                            ])
+                            ->columns(5),
+                    ])
+                    ->visible(fn (Audit $record) => config('recordkeeper.http.enabled', false)
+                        && $record->httpRequests()->exists()),
             ]);
     }
 

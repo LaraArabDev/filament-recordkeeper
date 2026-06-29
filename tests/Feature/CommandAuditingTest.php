@@ -74,6 +74,182 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(1, Audit::commandAudits()->count());
     }
 
+    public function test_memory_peak_is_recorded(): void
+    {
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertArrayHasKey('memory_peak_mb', $audit->context);
+        $this->assertIsFloat($audit->context['memory_peak_mb']);
+        $this->assertGreaterThan(0, $audit->context['memory_peak_mb']);
+    }
+
+    public function test_audit_count_is_recorded(): void
+    {
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertArrayHasKey('audit_count', $audit->context);
+        $this->assertIsInt($audit->context['audit_count']);
+    }
+
+    public function test_memory_not_recorded_when_disabled(): void
+    {
+        config(['recordkeeper.commands.metrics.memory' => false]);
+
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertArrayNotHasKey('memory_peak_mb', $audit->context);
+    }
+
+    public function test_audit_count_not_recorded_when_disabled(): void
+    {
+        config(['recordkeeper.commands.metrics.audit_count' => false]);
+
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertArrayNotHasKey('audit_count', $audit->context);
+    }
+
+    public function test_non_zero_exit_code_is_recorded(): void
+    {
+        $this->fireCommand('cache:clear', 1);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertSame(1, $audit->context['exit_code']);
+    }
+
+    public function test_audit_count_counts_only_audits_created_during_command(): void
+    {
+        Audit::create([
+            'event'          => 'updated',
+            'auditable_type' => 'system',
+            'old_values'     => [],
+            'new_values'     => [],
+        ]);
+
+        $input  = new StringInput('');
+        $output = new NullOutput();
+
+        event(new CommandStarting('cache:clear', $input, $output));
+
+        Audit::create(['event' => 'created', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
+        Audit::create(['event' => 'updated', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
+
+        event(new CommandFinished('cache:clear', $input, $output, 0));
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertSame(2, $audit->context['audit_count']);
+    }
+
+    public function test_audit_count_excludes_command_finished_events(): void
+    {
+        $input  = new StringInput('');
+        $output = new NullOutput();
+
+        event(new CommandStarting('cache:clear', $input, $output));
+
+        Audit::create(['event' => 'command.finished', 'auditable_type' => 'command', 'old_values' => [], 'new_values' => [], 'context' => ['command' => 'other:cmd']]);
+        Audit::create(['event' => 'updated', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
+
+        event(new CommandFinished('cache:clear', $input, $output, 0));
+
+        $audit = Audit::where('event', 'command.finished')->where('context->command', 'cache:clear')->first();
+
+        $this->assertSame(1, $audit->context['audit_count']);
+    }
+
+    public function test_audit_count_is_zero_when_no_audits_created_during_command(): void
+    {
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertSame(0, $audit->context['audit_count']);
+    }
+
+    public function test_anomaly_flagged_when_audit_count_spikes(): void
+    {
+        config([
+            'recordkeeper.commands.metrics.anomaly'            => true,
+            'recordkeeper.commands.metrics.anomaly_min_runs'   => 3,
+            'recordkeeper.commands.metrics.anomaly_multiplier' => 1.5,
+        ]);
+
+        foreach (range(1, 3) as $i) {
+            Audit::create([
+                'event'          => 'command.finished',
+                'auditable_type' => 'command',
+                'old_values'     => [],
+                'new_values'     => [],
+                'context'        => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 1],
+            ]);
+        }
+
+        $input  = new StringInput('');
+        $output = new NullOutput();
+
+        event(new CommandStarting('cache:clear', $input, $output));
+
+        foreach (range(1, 3) as $i) {
+            Audit::create(['event' => 'updated', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
+        }
+
+        event(new CommandFinished('cache:clear', $input, $output, 0));
+
+        $audit = Audit::where('event', 'command.finished')
+            ->where('id', '>', 3)
+            ->latest()
+            ->first();
+
+        $this->assertTrue($audit->context['anomaly'] ?? false);
+        $this->assertArrayHasKey('anomaly_reason', $audit->context);
+        $this->assertStringContainsString('audit_count', $audit->context['anomaly_reason']);
+    }
+
+    public function test_anomaly_not_flagged_without_enough_history(): void
+    {
+        config([
+            'recordkeeper.commands.metrics.anomaly'          => true,
+            'recordkeeper.commands.metrics.anomaly_min_runs' => 5,
+        ]);
+
+        $this->fireCommand('cache:clear', 0);
+
+        $audit = Audit::where('event', 'command.finished')->first();
+
+        $this->assertArrayNotHasKey('anomaly', $audit->context);
+    }
+
+    public function test_anomaly_not_flagged_when_disabled(): void
+    {
+        config(['recordkeeper.commands.metrics.anomaly' => false]);
+
+        foreach (range(1, 5) as $i) {
+            Audit::create([
+                'event'          => 'command.finished',
+                'auditable_type' => 'command',
+                'old_values'     => [],
+                'new_values'     => [],
+                'context'        => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 0],
+            ]);
+        }
+
+        $this->fireCommand('cache:clear', 0);
+
+        $recent = Audit::where('event', 'command.finished')->latest()->first();
+
+        $this->assertArrayNotHasKey('anomaly', $recent->context);
+    }
+
     private function fireCommand(string $command, int $exitCode): void
     {
         $input  = new StringInput('');

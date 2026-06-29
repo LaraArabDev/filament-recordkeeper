@@ -14,6 +14,9 @@ final class RecordCommandAudit
     /** @var array<string, float> */
     private static array $startTimes = [];
 
+    /** @var array<string, int> */
+    private static array $startMaxIds = [];
+
     /** @return array<string, string> */
     public function subscribe(\Illuminate\Events\Dispatcher $events): array
     {
@@ -30,7 +33,8 @@ final class RecordCommandAudit
             return;
         }
 
-        self::$startTimes[$event->command] = microtime(true);
+        self::$startTimes[$event->command]  = microtime(true);
+        self::$startMaxIds[$event->command] = (int) (Audit::max('id') ?? 0);
     }
 
     /** @param  CommandFinished  $event */
@@ -44,10 +48,36 @@ final class RecordCommandAudit
             ? (int) ((microtime(true) - self::$startTimes[$event->command]) * 1000)
             : null;
 
-        unset(self::$startTimes[$event->command]);
+        $startMaxId = self::$startMaxIds[$event->command] ?? null;
+
+        unset(self::$startTimes[$event->command], self::$startMaxIds[$event->command]);
 
         $commandClass = $this->resolveCommandClass($event->command);
         $attr         = $commandClass ? $this->attribute($commandClass) : null;
+
+        $context = array_filter([
+            'command'     => $event->command,
+            'exit_code'   => $event->exitCode,
+            'duration_ms' => $duration,
+        ], fn ($v) => $v !== null);
+
+        if (config('recordkeeper.commands.metrics.memory', true)) {
+            $context['memory_peak_mb'] = round(memory_get_peak_usage(true) / 1048576, 2);
+        }
+
+        if (config('recordkeeper.commands.metrics.audit_count', true) && $startMaxId !== null) {
+            $context['audit_count'] = Audit::where('id', '>', $startMaxId)
+                ->where('event', '!=', 'command.finished')
+                ->count();
+        }
+
+        if (config('recordkeeper.commands.metrics.anomaly', false) && $duration !== null) {
+            $anomalyData = $this->detectAnomaly($event->command, $duration, $context['audit_count'] ?? null);
+
+            if ($anomalyData !== null) {
+                $context = array_merge($context, $anomalyData);
+            }
+        }
 
         $audit = new Audit();
         $audit->fill([
@@ -59,11 +89,7 @@ final class RecordCommandAudit
             'user_type'      => null,
             'user_id'        => null,
             'tags'           => implode(',', $attr?->tags ?? []),
-            'context'        => array_filter([
-                'command'     => $event->command,
-                'exit_code'   => $event->exitCode,
-                'duration_ms' => $duration,
-            ], fn ($v) => $v !== null),
+            'context'        => $context,
         ]);
         $audit->save();
     }
@@ -94,6 +120,51 @@ final class RecordCommandAudit
         $commandClass = $this->resolveCommandClass($command);
 
         return $commandClass && $this->attribute($commandClass) !== null;
+    }
+
+    /**
+     * @param  string   $commandName
+     * @param  int      $duration
+     * @param  ?int     $auditCount
+     * @return ?array
+     */
+    private function detectAnomaly(string $commandName, int $duration, ?int $auditCount): ?array
+    {
+        $minRuns    = (int) config('recordkeeper.commands.metrics.anomaly_min_runs', 5);
+        $multiplier = (float) config('recordkeeper.commands.metrics.anomaly_multiplier', 2.0);
+
+        $history = Audit::commandAudits()
+            ->where('event', 'command.finished')
+            ->whereRaw("JSON_EXTRACT(context, '$.command') = ?", [$commandName])
+            ->latest()
+            ->limit($minRuns)
+            ->get();
+
+        if ($history->count() < $minRuns) {
+            return null;
+        }
+
+        $avgDuration = $history->avg(fn ($a) => $a->context['duration_ms'] ?? 0);
+        $avgAudits   = $history->avg(fn ($a) => $a->context['audit_count'] ?? 0);
+
+        $reasons = [];
+
+        if ($avgDuration > 0 && $duration > $avgDuration * $multiplier) {
+            $reasons[] = sprintf('duration %dms > %.0fx avg (%.0fms)', $duration, $multiplier, $avgDuration);
+        }
+
+        if ($auditCount !== null && $avgAudits > 0 && $auditCount > $avgAudits * $multiplier) {
+            $reasons[] = sprintf('audit_count %d > %.0fx avg (%.0f)', $auditCount, $multiplier, $avgAudits);
+        }
+
+        if (empty($reasons)) {
+            return null;
+        }
+
+        return [
+            'anomaly'        => true,
+            'anomaly_reason' => implode('; ', $reasons),
+        ];
     }
 
     /**

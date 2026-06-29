@@ -6,6 +6,7 @@ namespace LaraArabDev\Recordkeeper\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\MassPrunable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use OwenIt\Auditing\Models\Audit as BaseAudit;
 
@@ -168,6 +169,12 @@ class Audit extends BaseAudit
     public function rollback(bool $dryRun = false): mixed
     {
         return app(\LaraArabDev\Recordkeeper\Support\Rollback::class)->revert($this, $dryRun);
+    }
+
+    /** @return HasMany */
+    public function httpRequests(): HasMany
+    {
+        return $this->hasMany(AuditHttpRequest::class);
     }
 
     /** @return bool */

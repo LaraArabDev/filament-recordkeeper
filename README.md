@@ -3,6 +3,7 @@
 [![Tests](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/tests.yml/badge.svg)](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/tests.yml)
 [![Static Analysis](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/static-analysis.yml)
 [![Code Style](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml/badge.svg)](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml)
+[![PHPBench](https://img.shields.io/badge/benchmark-phpbench-blue)](https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/benchmarks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A Laravel package that wraps and extends [`owen-it/laravel-auditing`](https://laravel-auditing.com/) to provide:
@@ -346,6 +347,42 @@ php artisan recordkeeper:prune --days=365
 
 # Or schedule via Laravel (routes/console.php)
 Schedule::command('model:prune', ['--model' => \LaraArabDev\Recordkeeper\Models\Audit::class])->daily();
+```
+
+## Benchmarks
+
+Run the PHPBench suite locally:
+
+```bash
+composer bench            # full suite
+composer bench:quick      # fast smoke-run (3 revs × 2 iterations)
+composer bench:http       # HttpTracker + HTTP listener only
+composer bench:command    # command metrics only
+```
+
+Representative numbers on PHP 8.2 (SQLite in-memory, no opcache):
+
+| Subject | Mean |
+|---|---|
+| `HttpTracker::setContext` + `clearContext` | ~0.03 µs |
+| `HttpTracker::startRequest` + `finishRequest` | ~0.11 µs |
+| 10 concurrent tracked requests | ~1.0 µs |
+| `AttributeResolver::resolve` (cached) | ~0.05 µs |
+| `AttributeResolver::resolve` (cold, with `#[Redact]`) | ~4.4 µs |
+| Write one `Audit` row | ~76 µs |
+| Write one `AuditHttpRequest` row | ~62 µs |
+| HTTP listener disabled (event fires, listener skips) | ~10 µs |
+| HTTP listener enabled, sync DB write | ~96 µs |
+| HTTP listener, excluded host (skipped) | ~20 µs |
+| Command audit without metrics | ~121 µs |
+| Command audit with memory + audit_count | ~264 µs |
+| Command audit with anomaly detection | ~402 µs |
+
+Store a baseline and compare across branches:
+
+```bash
+composer bench:baseline   # tag current run as "baseline"
+composer bench:compare    # diff current run against baseline
 ```
 
 ## Testing

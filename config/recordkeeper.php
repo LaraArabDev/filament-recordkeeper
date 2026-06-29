@@ -97,6 +97,23 @@ return [
             'horizon:supervisor',
             'recordkeeper:tail',
         ],
+        'metrics' => [
+            'memory'             => true,
+            'audit_count'        => true,
+            'anomaly'            => env('RECORDKEEPER_ANOMALY', false),
+            'anomaly_multiplier' => 2.0,
+            'anomaly_min_runs'   => 5,
+        ],
+    ],
+
+    'http' => [
+        'enabled'         => env('RECORDKEEPER_HTTP', false),
+        'queue'           => env('RECORDKEEPER_HTTP_QUEUE', false),
+        'queue_name'      => env('RECORDKEEPER_HTTP_QUEUE_NAME', null),
+        'capture_headers' => env('RECORDKEEPER_HTTP_HEADERS', false),
+        'capture_body'    => env('RECORDKEEPER_HTTP_BODY', false),
+        'body_limit'      => 1000,
+        'exclude_hosts'   => [],
     ],
 
     'listen' => [
