@@ -1,0 +1,12 @@
+{
+    "source": {
+        "directories": ["src"]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "minMsi": 50,
+    "minCoveredMsi": 60,
+    "testFramework": "phpunit",
+    "bootstrap": "vendor/autoload.php"
+}

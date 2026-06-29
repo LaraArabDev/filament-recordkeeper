@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'enabled' => env('RECORDKEEPER_ENABLED', true),
+
+    'events' => ['created', 'updated', 'deleted', 'restored'],
+
+    'privacy' => [
+        'mode' => env('RECORDKEEPER_PRIVACY', 'redact'), // redact|encrypt|off
+        'mask' => '***',
+        'sensitive_patterns' => [
+            'password', 'secret', 'token', 'api_key',
+            'authorization', 'card', 'cvv', 'ssn', 'iban',
+        ],
+        'global_exclude' => ['remember_token'],
+    ],
+
+    'rollback' => [
+        'enabled'         => true,
+        'permission'      => 'rollback_audits',
+        'restore_deleted' => true,
+    ],
+
+    /*
+     * Date-based retention / pruning.
+     *
+     * laravel-auditing only supports count-based pruning ($auditThreshold).
+     * Recordkeeper adds date-based pruning via Laravel's MassPrunable trait.
+     *
+     * Options:
+     *   default_days  — delete audits older than this many days (0 = disabled)
+     *   per_model     — override per model class: ['App\Models\Order' => 90]
+     *
+     * To activate, schedule in your console kernel:
+     *   $schedule->command('model:prune', ['--model' => \LaraArabDev\Recordkeeper\Models\Audit::class])->daily();
+     *
+     * Or use: php artisan recordkeeper:prune --days=365
+     */
+    'retention' => [
+        'default_days' => (int) env('RECORDKEEPER_RETENTION_DAYS', 0), // 0 = disabled
+        'per_model'    => [],
+    ],
+
+    'guards' => [
+        'web' => true,
+        'api' => true,
+    ],
+
+    'filament' => [
+        'navigation_group' => 'Audit',
+        'navigation_icon'  => 'heroicon-o-clock',
+        'navigation_sort'  => 100,
+        'polling_interval' => null,
+    ],
+
+    'discovery' => [
+        'paths' => ['app/Models'],
+    ],
+
+    /*
+     * Strict mode: a failed audit write throws instead of logging and continuing.
+     * Enable in tests. Never in production.
+     */
+    'strict' => env('RECORDKEEPER_STRICT', false),
+
+    /*
+     * Extra pipeline stages for the middleware audit write path.
+     * Each entry must be a class-string with handle(AuditPayload, Closure): mixed.
+     */
+    'pipeline' => [],
+
+    /*
+     * Async queue for audit writes (model + route).
+     * When enabled, the write is dispatched as a job, adding < 2ms synchronous overhead.
+     */
+    'queue' => [
+        'enabled'    => env('RECORDKEEPER_QUEUE', false),
+        'connection' => env('RECORDKEEPER_QUEUE_CONNECTION', null),
+        'queue'      => env('RECORDKEEPER_QUEUE_NAME', 'audits'),
+    ],
+];

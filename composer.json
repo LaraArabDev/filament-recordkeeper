@@ -1,0 +1,65 @@
+{
+    "name": "laraarabdev/filament-recordkeeper",
+    "description": "Filament-aware audit trail package built on top of owen-it/laravel-auditing with PHP 8 attribute configuration, route auditing, rollback, and privacy protection.",
+    "keywords": ["laravel", "filament", "audit", "recordkeeper", "auditing"],
+    "homepage": "https://github.com/LaraArabDev/filament-recordkeeper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LaraArabDev",
+            "email": "contact@laraarabdev.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "owen-it/laravel-auditing": "^13.0",
+        "laravel/prompts": "^0.1|^0.2|^0.3",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "filament/filament": "^5.0",
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0",
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.18",
+        "infection/infection": "^0.29",
+        "mockery/mockery": "^1.6"
+    },
+    "suggest": {
+        "filament/filament": "Adds the Audit panel resource (smart filters, diff viewer, revert)."
+    },
+    "autoload": {
+        "psr-4": {
+            "LaraArabDev\\Recordkeeper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LaraArabDev\\Recordkeeper\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-clover coverage.xml",
+        "analyse": "phpstan analyse --memory-limit=512M",
+        "format": "pint",
+        "infection": "infection --threads=4 --min-msi=50 --min-covered-msi=60"
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["LaraArabDev\\Recordkeeper\\RecordkeeperServiceProvider"],
+            "aliases": {
+                "Recordkeeper": "LaraArabDev\\Recordkeeper\\Facades\\Recordkeeper"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

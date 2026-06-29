@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+namespace LaraArabDev\Recordkeeper\Tests;
+
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use LaraArabDev\Recordkeeper\RecordkeeperServiceProvider;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use OwenIt\Auditing\AuditingServiceProvider;
+
+abstract class TestCase extends OrchestraTestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpDatabase();
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            AuditingServiceProvider::class,
+            RecordkeeperServiceProvider::class,
+        ];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+        $app['config']->set('recordkeeper.queue.enabled', false);
+        $app['config']->set('recordkeeper.strict', true);
+        $app['config']->set('audit.implementation', \LaraArabDev\Recordkeeper\Models\Audit::class);
+        $app['config']->set('audit.console', true);
+    }
+
+    private function setUpDatabase(): void
+    {
+        // laravel-auditing's base audits table
+        Schema::create('audits', function (Blueprint $table): void {
+            $table->bigIncrements('id');
+            $table->string('user_type')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->index(['user_type', 'user_id']); // already done by laravel-auditing's nullableMorphs
+            $table->string('event');
+            $table->string('auditable_type');
+            $table->unsignedBigInteger('auditable_id')->nullable();
+            $table->index(['auditable_type', 'auditable_id']); // already done by laravel-auditing's morphs
+            $table->longText('old_values')->nullable();
+            $table->longText('new_values')->nullable();
+            $table->text('url')->nullable();
+            $table->ipAddress('ip_address')->nullable();
+            $table->string('user_agent', 1023)->nullable();
+            $table->string('tags')->nullable();
+            $table->timestamps();
+
+            // Recordkeeper extension columns
+            $table->string('guard')->nullable()->index();
+            $table->string('batch_id')->nullable()->index();
+            $table->json('context')->nullable();
+            $table->index('event');
+            $table->index('created_at');
+        });
+
+        // Test orders table
+        Schema::create('orders', function (Blueprint $table): void {
+            $table->bigIncrements('id');
+            $table->string('status')->default('pending');
+            $table->decimal('total', 10, 2)->default(0);
+            $table->string('discount_code')->nullable();
+            $table->string('password')->nullable();
+            $table->string('national_id')->nullable();
+            $table->text('internal_notes')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+}

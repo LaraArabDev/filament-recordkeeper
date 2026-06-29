@@ -1,0 +1,8 @@
+/vendor/
+/node_modules/
+/.phpunit.result.cache
+/.phpunit.cache
+/coverage.xml
+/infection.log
+/.php-cs-fixer.cache
+composer.lock

@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+namespace LaraArabDev\Recordkeeper\Tests\Feature;
+
+use Illuminate\Support\Carbon;
+use LaraArabDev\Recordkeeper\Facades\Recordkeeper;
+use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Support\AttributeResolver;
+use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
+use LaraArabDev\Recordkeeper\Tests\TestCase;
+
+class CommandTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        AttributeResolver::clearCache();
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:search
+    // ------------------------------------------------------------------
+
+    public function test_search_command_outputs_json(): void
+    {
+        Order::create(['status' => 'pending']);
+
+        $this->artisan('recordkeeper:search', ['--json' => true, '--limit' => '10'])
+             ->assertExitCode(0);
+    }
+
+    public function test_search_command_filter_by_event(): void
+    {
+        Order::create(['status' => 'a']);
+        $order = Order::create(['status' => 'b']);
+        $order->update(['status' => 'c']);
+
+        $this->artisan('recordkeeper:search', ['--event' => ['updated'], '--json' => true])
+             ->assertExitCode(0);
+    }
+
+    public function test_search_command_filter_by_guard(): void
+    {
+        Audit::create([
+            'event'          => 'route.get',
+            'auditable_type' => 'route',
+            'old_values'     => [],
+            'new_values'     => [],
+            'guard'          => 'api',
+        ]);
+
+        $this->artisan('recordkeeper:search', ['--guard' => 'api', '--json' => true])
+             ->assertExitCode(0);
+    }
+
+    public function test_search_command_returns_empty_json_array_when_no_results(): void
+    {
+        $this->artisan('recordkeeper:search', ['--json' => true])
+             ->assertExitCode(0);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:show
+    // ------------------------------------------------------------------
+
+    public function test_show_command_displays_audit(): void
+    {
+        Order::create(['status' => 'pending']);
+        $audit = Audit::first();
+
+        $this->artisan('recordkeeper:show', ['id' => $audit->id])
+             ->assertExitCode(0);
+    }
+
+    public function test_show_command_json_output(): void
+    {
+        Order::create(['status' => 'pending']);
+        $audit = Audit::first();
+
+        $this->artisan('recordkeeper:show', ['id' => $audit->id, '--json' => true])
+             ->assertExitCode(0);
+    }
+
+    public function test_show_command_fails_for_unknown_id(): void
+    {
+        $this->artisan('recordkeeper:show', ['id' => 99999])
+             ->assertExitCode(1);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:rollback
+    // ------------------------------------------------------------------
+
+    public function test_rollback_command_dry_run_does_not_modify(): void
+    {
+        $order = Order::create(['status' => 'pending']);
+        $order->update(['status' => 'shipped']);
+
+        $audit = Audit::where('event', 'updated')->first();
+
+        $this->artisan('recordkeeper:rollback', [
+            'id'         => $audit->id,
+            '--dry-run'  => true,
+        ])->assertExitCode(0);
+
+        $this->assertSame('shipped', $order->fresh()->status);
+    }
+
+    public function test_rollback_command_applies_with_yes_flag(): void
+    {
+        $order = Order::create(['status' => 'pending']);
+        $order->update(['status' => 'shipped']);
+
+        $audit = Audit::where('event', 'updated')->first();
+
+        $this->artisan('recordkeeper:rollback', [
+            'id'    => $audit->id,
+            '--yes' => true,
+        ])->assertExitCode(0);
+
+        $this->assertSame('pending', $order->fresh()->status);
+    }
+
+    public function test_rollback_command_fails_for_missing_id(): void
+    {
+        $this->artisan('recordkeeper:rollback')
+             ->assertExitCode(1);
+    }
+
+    public function test_rollback_command_batch_mode(): void
+    {
+        Recordkeeper::batch('cmd-batch', function (): void {
+            Order::create(['status' => 'x']);
+            Order::create(['status' => 'y']);
+        });
+
+        $this->artisan('recordkeeper:rollback', ['--batch' => 'cmd-batch', '--yes' => true])
+             ->assertExitCode(0);
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:stats
+    // ------------------------------------------------------------------
+
+    public function test_stats_command_outputs_successfully(): void
+    {
+        Order::create(['status' => 'a']);
+        $o = Order::create(['status' => 'b']);
+        $o->update(['status' => 'c']);
+
+        $this->artisan('recordkeeper:stats')
+             ->assertExitCode(0);
+    }
+
+    public function test_stats_command_json_output(): void
+    {
+        Order::create(['status' => 'a']);
+
+        $this->artisan('recordkeeper:stats', ['--json' => true])
+             ->assertExitCode(0);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:models (sync)
+    // ------------------------------------------------------------------
+
+    public function test_models_command_runs_successfully(): void
+    {
+        $this->artisan('recordkeeper:models')
+             ->assertExitCode(0);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:install
+    // ------------------------------------------------------------------
+
+    public function test_install_command_runs_without_errors(): void
+    {
+        $this->artisan('recordkeeper:install')
+             ->assertExitCode(0);
+    }
+}

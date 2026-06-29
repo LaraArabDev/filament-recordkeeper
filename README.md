@@ -9,16 +9,21 @@ A Laravel package that wraps and extends [`owen-it/laravel-auditing`](https://la
 
 - **PHP 8 attribute configuration** — `#[Auditable]`, `#[Redact]`, `#[Encrypt]`, `#[AuditExclude]`, `#[Audit]`
 - **Route + API auditing** — HTTP middleware that writes `Audit` records for web and API routes
-- **One-click rollback** — built on laravel-auditing's `transitionTo()` with batch support
-- **Sensitive-data protection** — redaction and encryption via laravel-auditing Attribute Modifiers
-- **Optional Filament 5 resource** — smart filters, before/after diff viewer, and permission-gated revert
+- **Rollback with batch support** — revert any audit or an entire batch, with SoftDeletes support and dry-run mode
+- **Sensitive-data protection** — pattern-based redaction and field-level encryption at write time
+- **Fluent audit query builder** — chainable `AuditQuery` for filtering by model, actor, guard, tag, batch, and date
+- **Audit model scopes** — ergonomic `Audit::forGuard()`, `forModel()`, `forActor()`, `rollbackable()`, and more
+- **Date-based pruning** — `MassPrunable` retention via `recordkeeper:prune` or Laravel's scheduler
+- **Optional Filament 5 resource** — smart filters, before/after diff viewer, audit timeline, and permission-gated revert
 
 ## Requirements
 
-- PHP 8.2 / 8.3 / 8.4
-- Laravel 11 / 12
-- `owen-it/laravel-auditing` ^13
-- Filament 5 *(optional)*
+| Dependency | Version |
+|---|---|
+| PHP | 8.2 / 8.3 / 8.4 |
+| Laravel | 11 / 12 |
+| `owen-it/laravel-auditing` | ^13.0 |
+| Filament | ^5.0 *(optional)* |
 
 ## Installation
 
@@ -28,7 +33,19 @@ php artisan recordkeeper:install
 php artisan migrate
 ```
 
-### Mode A — Filament Panel (full experience)
+The install command publishes:
+- `config/recordkeeper.php` — this package's config
+- `database/migrations/*_add_recordkeeper_columns_to_audits_table.php` — adds `guard`, `batch_id`, `context` columns + indexes
+- `config/audit.php` — laravel-auditing config *(skipped if already exists)*
+- `database/migrations/*_create_audits_table.php` — laravel-auditing base migration *(skipped if already run)*
+
+To re-publish any file (e.g. after an upgrade):
+
+```bash
+php artisan recordkeeper:install --force
+```
+
+### Mode A — Filament Panel
 
 Register the plugin in your panel provider:
 
@@ -47,30 +64,17 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-### Mode B — Headless / API only (no Filament)
+### Mode B — Headless / API only
 
-Add the trait + attributes to your models:
+Add the trait and PHP attributes to your models:
 
 ```php
 use LaraArabDev\Recordkeeper\Attributes\Auditable;
 use LaraArabDev\Recordkeeper\Attributes\Redact;
+use LaraArabDev\Recordkeeper\Attributes\Encrypt;
 use LaraArabDev\Recordkeeper\Concerns\AuditsChanges;
 
-#[Auditable]
-#[Redact('cvv')]
-class Payment extends Model implements \OwenIt\Auditing\Contracts\Auditable
-{
-    use AuditsChanges;
-}
-```
-
-## Usage
-
-### Model Auditing
-
-```php
 #[Auditable(events: ['created', 'updated', 'deleted'], retentionDays: 365)]
-#[AuditExclude('internal_notes')]
 #[Redact('discount_code')]
 #[Encrypt('national_id')]
 class Order extends Model implements \OwenIt\Auditing\Contracts\Auditable
@@ -80,47 +84,165 @@ class Order extends Model implements \OwenIt\Auditing\Contracts\Auditable
 }
 ```
 
+## Usage
+
+### PHP Attributes
+
+| Attribute | Description |
+|---|---|
+| `#[Auditable]` | Enable auditing; accepts `events`, `retentionDays`, `threshold`, `tags` |
+| `#[AuditExclude('field')]` | Exclude one or more fields from audit records |
+| `#[Redact('field')]` | Replace field value with `***` in audit records |
+| `#[Encrypt('field')]` | Encrypt field value in audit records (decrypted automatically on rollback) |
+| `#[Audit('event')]` | Fire a custom named audit event |
+
+```php
+#[Auditable(events: ['created', 'updated', 'deleted'], tags: ['orders'])]
+#[AuditExclude('internal_notes')]
+#[Redact('cvv')]
+#[Encrypt('national_id')]
+class Payment extends Model implements \OwenIt\Auditing\Contracts\Auditable
+{
+    use AuditsChanges;
+}
+```
+
 ### Route Auditing
 
 ```php
-// Web routes
+// Web routes — stores guard = 'web'
 Route::middleware('audit:tag=finance,body=true')->post('/pay', PayController::class);
 
-// API routes (resolves actor from token guard)
+// API routes — stores guard = 'api', resolves actor from token
 Route::middleware(['auth:sanctum', 'audit.api'])->apiResource('orders', OrderApiController::class);
 ```
+
+Each request creates an `Audit` row with:
+- `event` = `route.<METHOD>` (e.g. `route.POST`)
+- `guard` = the auth guard used
+- `context` = route name, HTTP method, response status, duration in ms
+- `user_id` / `user_type` = the resolved actor
 
 ### Rollback
 
 ```php
-// Roll back a single audit
-$order->audits()->latest()->first()->rollback();
+// Roll back the most recent audit for a record
+$audit = $order->audits()->rollbackable()->latest('id')->first();
+$audit->rollback();
 
-// Dry-run first
-$diff = $order->audits()->latest()->first()->rollback(dryRun: true);
+// Dry-run — returns a preview without writing changes
+$preview = $audit->rollback(dryRun: true);
 
-// Roll back a whole batch (newest-first, in a transaction)
+// Roll back an entire batch in a transaction (newest audit first)
 Recordkeeper::rollbackBatch('nightly-import');
+
+// Via facade by ID
+Recordkeeper::rollback($auditId);
 ```
 
-### Per-model audit context
+Rollback handles:
+- Models with `#[Redact]` / `#[Encrypt]` — values are decrypted before restoring
+- SoftDeletes — restores the soft-deleted record, or recreates it if force-deleted
+- Sequential rollbacks — each rollback deletes its own audit row so re-rolling works correctly
+
+### Fluent Query Builder
+
+```php
+use LaraArabDev\Recordkeeper\Support\AuditQuery;
+
+$results = app(AuditQuery::class)
+    ->model('Order')
+    ->event(['created', 'updated'])
+    ->actor(42, 'Admin')
+    ->guard('api')
+    ->tag('finance')
+    ->batch('nightly-import')
+    ->since('-7 days')
+    ->rollbackable()
+    ->latest()
+    ->limit(50)
+    ->builder()
+    ->get();
+```
+
+| Method | Description |
+|---|---|
+| `->model(string)` | Filter by model class (short name or FQCN) |
+| `->subjectId(int\|string)` | Filter by `auditable_id` |
+| `->event(string\|array)` | Filter by event name(s) |
+| `->rollbackable()` | Limit to created / updated / deleted / restored |
+| `->actor(id, type?)` | Filter by `user_id` and optional `user_type` |
+| `->actorType(string)` | Filter by `user_type` only |
+| `->onlyAuthenticated()` | Exclude system / guest audits |
+| `->guard(string)` | Filter by auth guard |
+| `->tag(string\|array)` | Filter by tag(s) |
+| `->batch(string)` | Filter by `batch_id` |
+| `->between(from, until)` | Date range filter |
+| `->since(from)` | Created after date |
+| `->search(string)` | Search across event, auditable type, batch, user |
+| `->latest()` | Order by `created_at` desc |
+| `->limit(int)` | Limit results |
+| `->offset(int)` | Offset results |
+| `->builder()` | Return the underlying Eloquent Builder |
+
+### Audit Model Scopes
+
+```php
+use LaraArabDev\Recordkeeper\Models\Audit;
+
+Audit::forGuard('api')->get();
+Audit::forModel('Order')->latest()->get();
+Audit::forSubject($order)->get();
+Audit::forActor($adminUser)->get();
+Audit::forActor(42, 'Admin')->get();
+Audit::forActorType('Admin')->get();
+Audit::forBatch('nightly-import')->get();
+Audit::rollbackable()->latest('id')->get();
+Audit::routeHits()->where('created_at', '>=', now()->subDay())->get();
+```
+
+### Batch Auditing
+
+```php
+Recordkeeper::batch('nightly-import-2025-01', function () {
+    Order::create([...]);
+    Order::create([...]);
+    // All audit rows share batch_id = 'nightly-import-2025-01'
+});
+
+// Roll back the entire batch
+Recordkeeper::rollbackBatch('nightly-import-2025-01');
+```
+
+### Per-model Audit Context
 
 ```php
 $order->auditContext(['reason' => 'admin override', 'ticket' => 'JIRA-123'])
       ->update(['status' => 'refunded']);
 ```
 
-### Batch auditing
+### Manual Audit Log
 
 ```php
-Recordkeeper::batch('nightly-import', function () {
-    Order::create([...]);
-    Order::create([...]);
-    // All audit rows share batch_id = 'nightly-import'
+// System event with no model subject
+Recordkeeper::log('payment.gateway.timeout', context: ['gateway' => 'stripe', 'attempt' => 3]);
+
+// Event against a specific model
+Recordkeeper::log('export.triggered', subject: $order, context: ['format' => 'csv']);
+```
+
+### Events
+
+```php
+use LaraArabDev\Recordkeeper\Events\ChangeRecorded;
+
+// Fired after every audit write (model events and manual log calls)
+Event::listen(ChangeRecorded::class, function (ChangeRecorded $event) {
+    // $event->audit — the Audit model instance
 });
 ```
 
-### Add audit history to any Filament resource
+### Add Audit History to a Filament Resource
 
 ```php
 use LaraArabDev\Recordkeeper\Filament\Concerns\HasAuditHistory;
@@ -128,57 +250,121 @@ use LaraArabDev\Recordkeeper\Filament\Concerns\HasAuditHistory;
 class OrderResource extends Resource
 {
     use HasAuditHistory;
-    // ...
 }
+```
+
+Or attach the relation manager directly:
+
+```php
+use LaraArabDev\Recordkeeper\Filament\RelationManagers\AuditsRelationManager;
+
+public static function getRelationManagers(): array
+{
+    return [AuditsRelationManager::class];
+}
+```
+
+### Custom Actor Resolver
+
+```php
+// In a service provider boot()
+Recordkeeper::resolveActorUsing(fn () => auth('admin')->user() ?? auth('api')->user());
 ```
 
 ## CLI Commands
 
 ```bash
+# Publish config and migrations
+php artisan recordkeeper:install
+php artisan recordkeeper:install --force    # overwrite existing files
+
 # Search audits
 php artisan recordkeeper:search --model=Order --event=updated --since="-7 days" --json
 
-# Show a single audit with diff
+# Show a single audit with full diff
 php artisan recordkeeper:show 1842
 
-# Roll back (dry-run first)
+# Roll back (dry-run first, then apply)
 php artisan recordkeeper:rollback 1842 --dry-run
 php artisan recordkeeper:rollback 1842 --yes
 
 # Roll back an entire batch
 php artisan recordkeeper:rollback --batch=nightly-import
 
-# Live-follow new audits
+# Live-follow new audit records (like tail -f)
 php artisan recordkeeper:tail --model=Order --interval=3
 
-# Stats dashboard
+# Audit stats dashboard
 php artisan recordkeeper:stats --since="-30 days"
 
-# Prune old records
+# Prune old records (dry-run first, then apply)
 php artisan recordkeeper:prune --days=365 --dry-run
 php artisan recordkeeper:prune --days=365 --yes
 
-# List auditable models
+# List discovered auditable models
 php artisan recordkeeper:models
 ```
 
+## Database Columns
+
+The extension migration adds these columns to the `audits` table:
+
+| Column | Type | Description |
+|---|---|---|
+| `guard` | `varchar` indexed | Auth guard (`web`, `api`, etc.) — stored as a dedicated column, not in JSON |
+| `batch_id` | `varchar` indexed | Groups related audits from one logical operation |
+| `context` | `json` nullable | Route info, duration ms, custom metadata |
+
+Additional indexes on: `event`, `guard`, `batch_id`, `created_at`, `(auditable_type, auditable_id, event)`.
+
 ## Configuration
 
-`config/recordkeeper.php` (published by `recordkeeper:install`):
+`config/recordkeeper.php`:
 
 | Key | Default | Description |
-|-----|---------|-------------|
-| `enabled` | `true` | Kill switch for all auditing |
+|---|---|---|
+| `enabled` | `true` | Global kill switch for all auditing |
 | `privacy.mode` | `redact` | `redact` \| `encrypt` \| `off` |
-| `privacy.sensitive_patterns` | `[password, secret, token, ...]` | Auto-redacted field patterns |
-| `rollback.enabled` | `true` | Enable/disable rollback |
-| `rollback.permission` | `rollback_audits` | Gate permission name |
-| `retention.default_days` | `365` | Default audit retention |
+| `privacy.mask` | `***` | Replacement value for redacted fields |
+| `privacy.sensitive_patterns` | `[password, secret, token, ...]` | Auto-redacted field name patterns |
+| `privacy.global_exclude` | `[remember_token]` | Always excluded from every audit |
+| `rollback.enabled` | `true` | Enable / disable rollback |
+| `rollback.restore_deleted` | `true` | Allow restoring deleted records |
+| `rollback.permission` | `rollback_audits` | Gate permission for Filament revert button |
+| `retention.default_days` | `0` | Delete audits older than N days (`0` = disabled) |
+| `retention.per_model` | `[]` | Per-model overrides: `['App\Models\Order' => 90]` |
 | `queue.enabled` | `false` | Queue audit writes asynchronously |
+| `queue.connection` | `null` | Queue connection |
+| `queue.queue` | `audits` | Queue name |
+| `strict` | `false` | Throw on failed audit writes (enable in tests) |
 
-Laravel-auditing's own `config/audit.php` governs drivers and resolvers — Recordkeeper layers on top.
+### Date-based Retention
+
+```bash
+# Manual prune
+php artisan recordkeeper:prune --days=365
+
+# Or schedule via Laravel (routes/console.php)
+Schedule::command('model:prune', ['--model' => \LaraArabDev\Recordkeeper\Models\Audit::class])->daily();
+```
+
+## Testing
+
+```bash
+composer test
+composer test:coverage
+composer analyse
+composer format
+```
+
+Test matrix:
+
+| PHP | Laravel | Filament |
+|---|---|---|
+| 8.2 | 11 / 12 | ^5.0 |
+| 8.3 | 11 / 12 | ^5.0 |
+| 8.4 | 11 / 12 | ^5.0 |
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-# filament-recordkeeper

@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine bump type
+        id: bump
+        run: |
+          COMMIT_MSG=$(git log -1 --format="%s")
+          COMMIT_BODY=$(git log -1 --format="%b")
+
+          RE_BREAKING_SPACE='BREAKING[[:space:]]CHANGE'
+          RE_BREAKING_BANG='^[a-z]+(\([^)]+\))?!:'
+          RE_FEAT='^feat(\([^)]+\))?:'
+          RE_FIX='^(fix|perf|hotfix)(\([^)]+\))?:'
+          RE_BRANCH_MAJOR='^(breaking|major)/'
+          RE_BRANCH_MINOR='^(feature|feat)/'
+          RE_BRANCH_PATCH='^(hotfix|fix|bugfix|patch)/'
+
+          BUMP=""
+          if echo "$COMMIT_MSG$COMMIT_BODY" | grep -qE "$RE_BREAKING_SPACE" \
+             || echo "$COMMIT_MSG" | grep -qE "$RE_BREAKING_BANG"; then
+            BUMP="major"
+          elif echo "$COMMIT_MSG" | grep -qE "$RE_FEAT"; then
+            BUMP="minor"
+          elif echo "$COMMIT_MSG" | grep -qE "$RE_FIX"; then
+            BUMP="patch"
+          fi
+
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if no release needed
+        if: steps.bump.outputs.bump == ''
+        run: echo "No release-worthy change detected. Skipping."
+
+      - name: Compute next tag
+        if: steps.bump.outputs.bump != ''
+        id: tag
+        run: |
+          git fetch --tags
+          LATEST=$(git tag --sort=-v:refname | head -n1)
+          LATEST=${LATEST:-v0.0.0}
+          V=${LATEST#v}
+          IFS='.' read -r MA MI PA <<< "$V"
+          case "${{ steps.bump.outputs.bump }}" in
+            major) MA=$((MA+1)); MI=0; PA=0;;
+            minor) MI=$((MI+1)); PA=0;;
+            patch) PA=$((PA+1));;
+          esac
+          echo "next=v$MA.$MI.$PA" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag & GitHub release
+        if: steps.bump.outputs.bump != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEXT="${{ steps.tag.outputs.next }}"
+          git tag "$NEXT"
+          git push origin "$NEXT"
+          gh release create "$NEXT" --generate-notes --title "$NEXT"
