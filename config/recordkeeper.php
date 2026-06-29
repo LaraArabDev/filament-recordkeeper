@@ -80,4 +80,27 @@ return [
         'connection' => env('RECORDKEEPER_QUEUE_CONNECTION', null),
         'queue'      => env('RECORDKEEPER_QUEUE_NAME', 'audits'),
     ],
+
+    'jobs' => [
+        'enabled' => env('RECORDKEEPER_JOBS', false),
+        'exclude' => [],
+    ],
+
+    'commands' => [
+        'enabled' => env('RECORDKEEPER_COMMANDS', false),
+        'exclude' => [
+            'schedule:run',
+            'schedule:finish',
+            'queue:work',
+            'queue:listen',
+            'horizon:work',
+            'horizon:supervisor',
+            'recordkeeper:tail',
+        ],
+    ],
+
+    'listen' => [
+        // Event class strings to audit, e.g.:
+        // \App\Events\UserRegistered::class,
+    ],
 ];

@@ -211,6 +211,30 @@ final class AuditQuery implements AuditQueryContract
         return $this;
     }
 
+    /** @return static */
+    public function jobs(): static
+    {
+        $this->query->where('event', 'like', 'job.%');
+
+        return $this;
+    }
+
+    /** @return static */
+    public function commands(): static
+    {
+        $this->query->where('event', 'like', 'command.%');
+
+        return $this;
+    }
+
+    /** @return static */
+    public function events(): static
+    {
+        $this->query->where('event', 'like', 'event.%');
+
+        return $this;
+    }
+
     /** @return Builder */
     public function builder(): Builder
     {

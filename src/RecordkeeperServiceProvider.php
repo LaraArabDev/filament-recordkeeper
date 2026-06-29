@@ -21,6 +21,9 @@ use LaraArabDev\Recordkeeper\Contracts\AuditQueryContract;
 use LaraArabDev\Recordkeeper\Contracts\Rollbacker;
 use LaraArabDev\Recordkeeper\Http\Middleware\AuditApi;
 use LaraArabDev\Recordkeeper\Http\Middleware\AuditRoute;
+use LaraArabDev\Recordkeeper\Listeners\RecordCommandAudit;
+use LaraArabDev\Recordkeeper\Listeners\RecordEventAudit;
+use LaraArabDev\Recordkeeper\Listeners\RecordJobAudit;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Support\Rollback;
 
@@ -47,6 +50,7 @@ class RecordkeeperServiceProvider extends ServiceProvider
         $this->registerMigrations();
         $this->registerMiddlewareAliases();
         $this->registerAuditModel();
+        $this->registerAuditListeners();
 
         if ($this->app->runningInConsole()) {
             $this->offerPublishing();
@@ -108,8 +112,23 @@ class RecordkeeperServiceProvider extends ServiceProvider
         );
 
         Relation::morphMap([
-            'route'  => \LaraArabDev\Recordkeeper\Models\Audit::class,
-            'system' => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'route'   => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'system'  => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'job'     => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'command' => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'event'   => \LaraArabDev\Recordkeeper\Models\Audit::class,
         ]);
+    }
+
+    /** @return void */
+    private function registerAuditListeners(): void
+    {
+        $this->app['events']->subscribe(RecordJobAudit::class);
+
+        if (config('recordkeeper.commands.enabled', false)) {
+            $this->app['events']->subscribe(RecordCommandAudit::class);
+        }
+
+        $this->app['events']->listen('*', [RecordEventAudit::class, 'handle']);
     }
 }

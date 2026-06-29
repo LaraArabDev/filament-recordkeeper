@@ -122,6 +122,33 @@ class Audit extends BaseAudit
         return $query->where('event', 'like', 'route.%');
     }
 
+    /**
+     * @param  Builder  $query
+     * @return Builder
+     */
+    public function scopeJobAudits(Builder $query): Builder
+    {
+        return $query->where('event', 'like', 'job.%');
+    }
+
+    /**
+     * @param  Builder  $query
+     * @return Builder
+     */
+    public function scopeCommandAudits(Builder $query): Builder
+    {
+        return $query->where('event', 'like', 'command.%');
+    }
+
+    /**
+     * @param  Builder  $query
+     * @return Builder
+     */
+    public function scopeEventAudits(Builder $query): Builder
+    {
+        return $query->where('event', 'like', 'event.%');
+    }
+
     /** @return Builder */
     public function prunable(): Builder
     {
