@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.next }}
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -29,9 +32,6 @@ jobs:
           RE_BREAKING_BANG='^[a-z]+(\([^)]+\))?!:'
           RE_FEAT='^feat(\([^)]+\))?:'
           RE_FIX='^(fix|perf|hotfix)(\([^)]+\))?:'
-          RE_BRANCH_MAJOR='^(breaking|major)/'
-          RE_BRANCH_MINOR='^(feature|feat)/'
-          RE_BRANCH_PATCH='^(hotfix|fix|bugfix|patch)/'
 
           BUMP=""
           if echo "$COMMIT_MSG$COMMIT_BODY" | grep -qE "$RE_BREAKING_SPACE" \
@@ -44,10 +44,6 @@ jobs:
           fi
 
           echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
-
-      - name: Skip if no release needed
-        if: steps.bump.outputs.bump == ''
-        run: echo "No release-worthy change detected. Skipping."
 
       - name: Compute next tag
         if: steps.bump.outputs.bump != ''
@@ -74,3 +70,34 @@ jobs:
           git tag "$NEXT"
           git push origin "$NEXT"
           gh release create "$NEXT" --generate-notes --title "$NEXT"
+
+      - name: Compute artifact hashes for provenance
+        id: hash
+        if: steps.bump.outputs.bump != ''
+        env:
+          TAG: ${{ steps.tag.outputs.next }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="LaraArabDev/filament-recordkeeper"
+          for i in $(seq 1 10); do
+            STATUS=$(gh api repos/${REPO}/releases/tags/${TAG} --jq '.tag_name' 2>/dev/null || echo "")
+            [ -n "$STATUS" ] && break
+            sleep 3
+          done
+          curl -sSfL "https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz" -o "${TAG}.tar.gz"
+          curl -sSfL "https://github.com/${REPO}/archive/refs/tags/${TAG}.zip" -o "${TAG}.zip"
+          HASHES=$(sha256sum "${TAG}.tar.gz" "${TAG}.zip" | base64 -w0)
+          echo "hashes=${HASHES}" >> "$GITHUB_OUTPUT"
+
+  provenance:
+    needs: [release]
+    if: needs.release.outputs.tag != ''
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    with:
+      base64-subjects: "${{ needs.release.outputs.hashes }}"
+      upload-assets: true
+      upload-tag-name: "${{ needs.release.outputs.tag }}"
