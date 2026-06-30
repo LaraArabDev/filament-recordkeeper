@@ -7,6 +7,7 @@
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/static-analysis.yml"><img src="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/static-analysis.yml/badge.svg" alt="Static Analysis"></a>
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml"><img src="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml/badge.svg" alt="Code Style"></a>
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/load-test.yml"><img src="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/load-test.yml/badge.svg" alt="Load Tests"></a>
+  <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/mutation-testing.yml"><img src="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/mutation-testing.yml/badge.svg" alt="Mutation Testing"></a>
   <a href="https://codecov.io/gh/LaraArabDev/filament-recordkeeper"><img src="https://codecov.io/gh/LaraArabDev/filament-recordkeeper/graph/badge.svg" alt="Coverage"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/LaraArabDev/filament-recordkeeper"><img src="https://api.scorecard.dev/projects/github.com/LaraArabDev/filament-recordkeeper/badge" alt="OpenSSF Scorecard"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT"></a>
