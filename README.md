@@ -19,6 +19,9 @@
   <a href="https://codecov.io/gh/LaraArabDev/filament-recordkeeper">
     <img src="https://codecov.io/gh/LaraArabDev/filament-recordkeeper/graph/badge.svg" alt="Coverage">
   </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/LaraArabDev/filament-recordkeeper">
+    <img src="https://api.scorecard.dev/projects/github.com/LaraArabDev/filament-recordkeeper/badge" alt="OpenSSF Scorecard">
+  </a>
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/benchmarks.yml">
     <img src="https://img.shields.io/badge/benchmark-phpbench-blue" alt="PHPBench">
   </a>
