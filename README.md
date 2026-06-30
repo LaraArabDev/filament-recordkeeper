@@ -16,6 +16,9 @@
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml">
     <img src="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml/badge.svg" alt="Code Style">
   </a>
+  <a href="https://codecov.io/gh/LaraArabDev/filament-recordkeeper">
+    <img src="https://codecov.io/gh/LaraArabDev/filament-recordkeeper/graph/badge.svg" alt="Coverage">
+  </a>
   <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/benchmarks.yml">
     <img src="https://img.shields.io/badge/benchmark-phpbench-blue" alt="PHPBench">
   </a>
@@ -475,10 +478,10 @@ All features are **opt-in and zero-cost when disabled** — listeners are not ev
 ## Testing
 
 ```bash
-composer test
-composer test:coverage
-composer analyse
-composer format
+composer test            # pest (no coverage)
+composer test:coverage   # pest --coverage --coverage-clover coverage.xml
+composer analyse         # phpstan
+composer format          # pint
 ```
 
 Test matrix:

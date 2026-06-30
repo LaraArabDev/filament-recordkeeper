@@ -56,8 +56,8 @@ jobs:
             --no-interaction --no-update
           composer update --no-interaction --prefer-dist --no-progress
 
-      - name: Run tests with coverage (PHPUnit)
-        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+      - name: Run tests with coverage
+        run: vendor/bin/pest --coverage --coverage-clover coverage.xml
 
       - name: Upload coverage reports to Codecov
         if: matrix.php == '8.3' && matrix.laravel == '11.*' && matrix.filament == '^5.0'
