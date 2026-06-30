@@ -22,6 +22,11 @@ class UserRegistered
 
 class NonAuditedLaravelEvent {}
 
+class PlainObjectEvent
+{
+    public string $data = 'test';
+}
+
 final class EventAuditingTest extends TestCase
 {
     public function test_event_with_attribute_creates_audit(): void
@@ -96,5 +101,31 @@ final class EventAuditingTest extends TestCase
 
         $this->assertCount(1, $results);
         $this->assertSame('event.UserRegistered', $results->first()->event);
+    }
+
+    public function test_payload_serializes_plain_object_via_get_object_vars(): void
+    {
+        config(['recordkeeper.listen' => [PlainObjectEvent::class]]);
+
+        event(new PlainObjectEvent);
+
+        $audit = Audit::where('event', 'event.PlainObjectEvent')->first();
+        $this->assertNotNull($audit);
+    }
+
+    public function test_disabled_kill_switch_skips_event_audit(): void
+    {
+        config(['recordkeeper.enabled' => false]);
+
+        event(new UserRegistered(42));
+
+        $this->assertSame(0, Audit::where('event', 'like', 'event.%')->count());
+    }
+
+    public function test_eloquent_prefix_events_are_ignored(): void
+    {
+        event('eloquent.created: App\Models\Order', []);
+
+        $this->assertSame(0, Audit::where('event', 'like', 'event.%')->count());
     }
 }

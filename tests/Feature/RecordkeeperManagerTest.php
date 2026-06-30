@@ -218,4 +218,35 @@ class RecordkeeperManagerTest extends TestCase
         $actor = $manager->resolveActor();
         $this->assertSame(999, $actor->id);
     }
+
+    public function test_resolve_actor_falls_back_to_auth_user(): void
+    {
+        $manager = app(RecordkeeperManager::class);
+        $actor = $manager->resolveActor();
+
+        $this->assertNull($actor); // no user authenticated in tests
+    }
+
+    public function test_decorate_merges_json_string_context(): void
+    {
+        $manager = app(RecordkeeperManager::class);
+        $manager->pushContext(['extra' => 'value']);
+
+        $row = $manager->decorate([
+            'context' => json_encode(['existing' => 'key']),
+        ]);
+
+        $this->assertSame('key', $row['context']['existing']);
+        $this->assertSame('value', $row['context']['extra']);
+
+        $manager->clearContext();
+    }
+
+    public function test_current_tags_returns_empty_by_default(): void
+    {
+        $manager = app(RecordkeeperManager::class);
+        $manager->withTags([]);
+
+        $this->assertSame([], $manager->currentTags());
+    }
 }

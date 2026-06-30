@@ -173,6 +173,80 @@ class CommandTest extends TestCase
             ->assertExitCode(0);
     }
 
+    public function test_search_command_table_format(): void
+    {
+        Order::create(['status' => 'pending']);
+
+        $this->artisan('recordkeeper:search', ['--format' => 'table', '--limit' => '10'])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_csv_format(): void
+    {
+        Order::create(['status' => 'pending']);
+
+        $this->artisan('recordkeeper:search', ['--format' => 'csv', '--limit' => '10'])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_since_option(): void
+    {
+        Order::create(['status' => 'pending']);
+
+        $this->artisan('recordkeeper:search', ['--since' => '-7 days', '--json' => true])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_page_option(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            Order::create(['status' => "s{$i}"]);
+        }
+
+        $this->artisan('recordkeeper:search', ['--limit' => '2', '--page' => '2', '--json' => true])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_empty_result_non_json(): void
+    {
+        $this->artisan('recordkeeper:search', ['--format' => 'table'])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_filter_by_batch(): void
+    {
+        Recordkeeper::batch('test-batch', fn () => Order::create(['status' => 'batched']));
+
+        $this->artisan('recordkeeper:search', ['--batch' => 'test-batch', '--json' => true])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_filter_by_tag(): void
+    {
+        Order::create(['status' => 'ok']);
+
+        $this->artisan('recordkeeper:search', ['--tag' => 'finance', '--json' => true])
+            ->assertExitCode(0);
+    }
+
+    public function test_search_command_filter_by_model(): void
+    {
+        Order::create(['status' => 'ok']);
+
+        $this->artisan('recordkeeper:search', ['--model' => 'Order', '--json' => true])
+            ->assertExitCode(0);
+    }
+
+    // ------------------------------------------------------------------
+    // recordkeeper:models --json
+    // ------------------------------------------------------------------
+
+    public function test_models_command_json_output(): void
+    {
+        $this->artisan('recordkeeper:models', ['--json' => true])
+            ->assertExitCode(0);
+    }
+
     // ------------------------------------------------------------------
     // recordkeeper:install
     // ------------------------------------------------------------------

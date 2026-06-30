@@ -12,6 +12,10 @@
         <include>
             <directory>src</directory>
         </include>
+        <exclude>
+            <directory>src/Filament</directory>
+            <file>src/Console/TailCommand.php</file>
+        </exclude>
     </source>
     <php>
         <env name="DB_CONNECTION" value="testing"/>

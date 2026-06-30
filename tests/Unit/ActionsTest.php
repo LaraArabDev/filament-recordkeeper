@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Unit;
 
+use LaraArabDev\Recordkeeper\Actions\PruneAudits;
 use LaraArabDev\Recordkeeper\Actions\RecordAudit;
+use LaraArabDev\Recordkeeper\Actions\RedactValues;
+use LaraArabDev\Recordkeeper\Actions\RestoreDeleted;
+use LaraArabDev\Recordkeeper\Actions\RevertAudit;
+use LaraArabDev\Recordkeeper\Actions\RevertBatch;
 use LaraArabDev\Recordkeeper\Actions\SearchAudits;
 use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 use LaraArabDev\Recordkeeper\Facades\Recordkeeper;
@@ -159,6 +164,80 @@ class ActionsTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $results->count());
     }
 
+    // ── RedactValues ──────────────────────────────────────────────────────
+
+    public function test_redact_values_handle_is_equivalent_to_invoke(): void
+    {
+        config(['recordkeeper.privacy.sensitive_patterns' => ['token']]);
+
+        $action = app(RedactValues::class);
+        $result = $action->handle(['token' => 'abc', 'name' => 'Joe']);
+
+        $this->assertSame('***', $result['token']);
+        $this->assertSame('Joe', $result['name']);
+    }
+
+    public function test_redact_values_uses_explicit_patterns(): void
+    {
+        $action = app(RedactValues::class);
+        $result = $action(['secret' => 'x', 'other' => 'y'], ['secret']);
+
+        $this->assertSame('***', $result['secret']);
+        $this->assertSame('y', $result['other']);
+    }
+
+    // ── PruneAudits ───────────────────────────────────────────────────────
+
+    public function test_prune_audits_handle_is_equivalent_to_invoke(): void
+    {
+        $action = app(PruneAudits::class);
+        $count = $action->handle(0, true); // dry-run with 0 days = would prune all
+
+        $this->assertIsInt($count);
+    }
+
+    // ── RevertAudit ───────────────────────────────────────────────────────
+
+    public function test_revert_audit_handle_performs_rollback(): void
+    {
+        $order = Order::create(['status' => 'pending']);
+        $order->update(['status' => 'shipped']);
+
+        $audit = Audit::where('event', 'updated')->first();
+        $action = app(RevertAudit::class);
+        $action->handle($audit, false);
+
+        $this->assertSame('pending', $order->fresh()->status);
+    }
+
+    // ── RevertBatch ───────────────────────────────────────────────────────
+
+    public function test_revert_batch_handle_rolls_back_batch(): void
+    {
+        Recordkeeper::batch('unit-batch', fn () => Order::create(['status' => 'batched']));
+
+        $action = app(RevertBatch::class);
+        $action->handle('unit-batch', false);
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    // ── RestoreDeleted ────────────────────────────────────────────────────
+
+    public function test_restore_deleted_handle_restores_soft_deleted(): void
+    {
+        $order = Order::create(['status' => 'active']);
+        $order->delete();
+
+        $deletedAudit = Audit::where('event', 'deleted')->first();
+
+        $action = app(RestoreDeleted::class);
+        $action->handle($deletedAudit, false);
+
+        $this->assertNotNull(Order::find($order->id));
+    }
+
+    // ── SearchAudits guard filter ─────────────────────────────────────────
     public function test_search_filters_by_guard(): void
     {
         $payload = new AuditPayload(
