@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Queue\Events\JobFailed;
@@ -93,7 +96,7 @@ final class JobHttpTrackerTest extends TestCase
 
         $processingAudit = Audit::where('event', 'job.processing')->first();
 
-        $request  = $this->makeRequest('POST', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('POST', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -115,7 +118,7 @@ final class JobHttpTrackerTest extends TestCase
         $processingAudit = Audit::where('event', 'job.processing')->first();
 
         foreach (['https://api.stripe.com/charge', 'https://api.hubspot.com/contact', 'https://api.sendgrid.com/mail'] as $url) {
-            $req  = $this->makeRequest('POST', $url);
+            $req = $this->makeRequest('POST', $url);
             $resp = $this->makeResponse(201);
             event(new RequestSending($req));
             event(new ResponseReceived($req, $resp));
@@ -132,7 +135,7 @@ final class JobHttpTrackerTest extends TestCase
         event(new JobProcessing('sync', $job));
         event(new JobProcessed('sync', $job));
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/after');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/after');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -159,9 +162,9 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNotSame($firstAuditId, $secondAuditId);
     }
 
-    private function mockJob(string $jobClass): \Illuminate\Contracts\Queue\Job
+    private function mockJob(string $jobClass): Job
     {
-        $mock = $this->createMock(\Illuminate\Contracts\Queue\Job::class);
+        $mock = $this->createMock(Job::class);
         $mock->method('getName')->willReturn($jobClass);
         $mock->method('getRawBody')->willReturn(json_encode(['displayName' => $jobClass]));
         $mock->method('getQueue')->willReturn('default');
@@ -172,14 +175,14 @@ final class JobHttpTrackerTest extends TestCase
 
     private function makeRequest(string $method, string $url): \Illuminate\Http\Client\Request
     {
-        $psr = new \GuzzleHttp\Psr7\Request($method, $url, ['Content-Type' => 'application/json']);
+        $psr = new Request($method, $url, ['Content-Type' => 'application/json']);
 
         return new \Illuminate\Http\Client\Request($psr);
     }
 
     private function makeResponse(int $status): \Illuminate\Http\Client\Response
     {
-        $psr = new \GuzzleHttp\Psr7\Response($status, [], '{}');
+        $psr = new Response($status, [], '{}');
 
         return new \Illuminate\Http\Client\Response($psr);
     }

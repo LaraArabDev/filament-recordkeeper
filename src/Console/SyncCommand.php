@@ -15,14 +15,13 @@ class SyncCommand extends Command
 
     protected $description = 'List auditable models with their resolved configuration';
 
-    /** @return int */
     public function handle(): int
     {
-        $paths  = config('recordkeeper.discovery.paths', ['app/Models']);
+        $paths = config('recordkeeper.discovery.paths', ['app/Models']);
         $models = $this->discoverModels($paths);
 
         if (empty($models)) {
-            $this->warn('No auditable models found in: ' . implode(', ', $paths));
+            $this->warn('No auditable models found in: '.implode(', ', $paths));
 
             return self::SUCCESS;
         }
@@ -31,17 +30,17 @@ class SyncCommand extends Command
         foreach ($models as $class) {
             $config = AttributeResolver::resolve($class);
             $rows[] = [
-                'model'      => class_basename($class),
-                'events'     => implode(',', $config->auditEvents),
-                'redact'     => implode(',', array_keys(array_filter(
+                'model' => class_basename($class),
+                'events' => implode(',', $config->auditEvents),
+                'redact' => implode(',', array_keys(array_filter(
                     $config->attributeModifiers,
                     fn ($m) => str_contains($m, 'Redact')
                 ))),
-                'encrypt'    => implode(',', array_keys(array_filter(
+                'encrypt' => implode(',', array_keys(array_filter(
                     $config->attributeModifiers,
                     fn ($m) => str_contains($m, 'Encrypt')
                 ))),
-                'retention'  => $config->retentionDays . 'd',
+                'retention' => $config->retentionDays.'d',
             ];
         }
 
@@ -57,7 +56,6 @@ class SyncCommand extends Command
     }
 
     /**
-     * @param  array  $paths
      * @return class-string[]
      */
     private function discoverModels(array $paths): array
@@ -79,10 +77,6 @@ class SyncCommand extends Command
         return $models;
     }
 
-    /**
-     * @param  string  $path
-     * @return ?string
-     */
     private function fileToClass(string $path): ?string
     {
         $content = file_get_contents($path);
@@ -91,21 +85,18 @@ class SyncCommand extends Command
         }
         if (preg_match('/^namespace\s+(.+?);/m', $content, $ns)
             && preg_match('/^class\s+(\w+)/m', $content, $cls)) {
-            return $ns[1] . '\\' . $cls[1];
+            return $ns[1].'\\'.$cls[1];
         }
 
         return null;
     }
 
-    /**
-     * @param  string  $class
-     * @return bool
-     */
     private function isAuditable(string $class): bool
     {
         if (! class_exists($class)) {
             return false;
         }
+
         return in_array(AuditsChanges::class, class_uses_recursive($class), true);
     }
 }

@@ -9,11 +9,6 @@ use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 
 final class ComputeDiff
 {
-    /**
-     * @param  AuditPayload  $payload
-     * @param  Closure       $next
-     * @return mixed
-     */
     public function handle(AuditPayload $payload, Closure $next): mixed
     {
         return $next($payload);

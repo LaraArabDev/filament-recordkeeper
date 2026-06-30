@@ -18,10 +18,6 @@ class AuditsRelationManager extends RelationManager
 
     protected static ?string $icon = 'heroicon-o-clock';
 
-    /**
-     * @param  Table  $table
-     * @return Table
-     */
     public function table(Table $table): Table
     {
         return $table
@@ -35,16 +31,16 @@ class AuditsRelationManager extends RelationManager
                 TextColumn::make('event')
                     ->badge()
                     ->color(fn (string $state): string => match (true) {
-                        $state === 'created'  => 'success',
-                        $state === 'updated'  => 'warning',
+                        $state === 'created' => 'success',
+                        $state === 'updated' => 'warning',
                         in_array($state, ['deleted', 'forceDeleted'], true) => 'danger',
-                        default              => 'gray',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('user_id')
                     ->label('Actor')
                     ->formatStateUsing(fn ($state, $record) => $state
-                        ? (class_basename((string) ($record->user_type ?? 'User')) . ' #' . $state)
+                        ? (class_basename((string) ($record->user_type ?? 'User')).' #'.$state)
                         : 'system'),
             ])
             ->defaultSort('created_at', 'desc')

@@ -8,11 +8,5 @@ use LaraArabDev\Recordkeeper\Events\ChangeRecorded;
 
 final class RecordCustomContext
 {
-    /**
-     * @param  ChangeRecorded  $event
-     * @return void
-     */
-    public function handle(ChangeRecorded $event): void
-    {
-    }
+    public function handle(ChangeRecorded $event): void {}
 }

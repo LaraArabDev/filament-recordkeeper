@@ -6,6 +6,7 @@ namespace LaraArabDev\Recordkeeper\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\RecordkeeperServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use OwenIt\Auditing\AuditingServiceProvider;
@@ -30,15 +31,15 @@ abstract class TestCase extends OrchestraTestCase
     {
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
 
-        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         $app['config']->set('recordkeeper.queue.enabled', false);
         $app['config']->set('recordkeeper.strict', true);
-        $app['config']->set('audit.implementation', \LaraArabDev\Recordkeeper\Models\Audit::class);
+        $app['config']->set('audit.implementation', Audit::class);
         $app['config']->set('audit.console', true);
     }
 

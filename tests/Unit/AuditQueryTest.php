@@ -31,26 +31,26 @@ class AuditQueryTest extends TestCase
 
         // route audit for web guard
         Audit::create([
-            'event'          => 'route.get',
+            'event' => 'route.get',
             'auditable_type' => 'route',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'guard'          => 'web',
-            'batch_id'       => null,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'guard' => 'web',
+            'batch_id' => null,
         ]);
 
         // route audit for api guard
         Audit::create([
-            'event'          => 'route.post',
+            'event' => 'route.post',
             'auditable_type' => 'route',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'guard'          => 'api',
-            'user_type'      => 'App\\Models\\Admin',
-            'user_id'        => 99,
-            'batch_id'       => 'batch-b',
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'guard' => 'api',
+            'user_type' => 'App\\Models\\Admin',
+            'user_id' => 99,
+            'batch_id' => 'batch-b',
         ]);
     }
 
@@ -58,7 +58,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->model('Order')->builder()->get();
+        $results = (new AuditQuery)->model('Order')->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => $a->auditable_type === Order::class));
         $this->assertGreaterThan(0, $results->count());
@@ -68,7 +68,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->model(Order::class)->builder()->get();
+        $results = (new AuditQuery)->model(Order::class)->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => $a->auditable_type === Order::class));
     }
@@ -77,7 +77,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->event('updated')->builder()->get();
+        $results = (new AuditQuery)->event('updated')->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => $a->event === 'updated'));
     }
@@ -86,7 +86,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->event(['created', 'updated'])->builder()->get();
+        $results = (new AuditQuery)->event(['created', 'updated'])->builder()->get();
 
         foreach ($results as $r) {
             $this->assertContains($r->event, ['created', 'updated']);
@@ -97,8 +97,8 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $web = (new AuditQuery())->guard('web')->builder()->get();
-        $api = (new AuditQuery())->guard('api')->builder()->get();
+        $web = (new AuditQuery)->guard('web')->builder()->get();
+        $api = (new AuditQuery)->guard('api')->builder()->get();
 
         $this->assertTrue($web->every(fn ($a) => $a->guard === 'web'));
         $this->assertTrue($api->every(fn ($a) => $a->guard === 'api'));
@@ -108,7 +108,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $webOnly = (new AuditQuery())->guard('web')->builder()->get();
+        $webOnly = (new AuditQuery)->guard('web')->builder()->get();
 
         $this->assertFalse($webOnly->contains(fn ($a) => $a->guard === 'api'));
     }
@@ -117,7 +117,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->actor(99)->builder()->get();
+        $results = (new AuditQuery)->actor(99)->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => $a->user_id == 99));
     }
@@ -126,7 +126,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->actor(99, 'Admin')->builder()->get();
+        $results = (new AuditQuery)->actor(99, 'Admin')->builder()->get();
 
         $this->assertGreaterThan(0, $results->count());
         $this->assertTrue($results->every(fn ($a) => $a->user_id == 99));
@@ -136,7 +136,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->actor(99, 'App\\Models\\Admin')->builder()->get();
+        $results = (new AuditQuery)->actor(99, 'App\\Models\\Admin')->builder()->get();
 
         $this->assertGreaterThan(0, $results->count());
     }
@@ -145,7 +145,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->actorType('Admin')->builder()->get();
+        $results = (new AuditQuery)->actorType('Admin')->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => str_contains((string) $a->user_type, 'Admin')));
     }
@@ -154,7 +154,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->batch('batch-a')->builder()->get();
+        $results = (new AuditQuery)->batch('batch-a')->builder()->get();
 
         $this->assertTrue($results->every(fn ($a) => $a->batch_id === 'batch-a'));
     }
@@ -163,7 +163,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->rollbackable()->builder()->get();
+        $results = (new AuditQuery)->rollbackable()->builder()->get();
 
         $this->assertFalse($results->contains(fn ($a) => str_starts_with((string) $a->event, 'route.')));
     }
@@ -172,7 +172,7 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->search('updated')->builder()->get();
+        $results = (new AuditQuery)->search('updated')->builder()->get();
 
         $this->assertGreaterThan(0, $results->count());
     }
@@ -181,10 +181,10 @@ class AuditQueryTest extends TestCase
     {
         $this->seedAudits();
 
-        $results = (new AuditQuery())->latest()->builder()->get();
+        $results = (new AuditQuery)->latest()->builder()->get();
 
         $timestamps = $results->pluck('created_at')->map(fn ($d) => $d->timestamp)->all();
-        $sorted     = $timestamps;
+        $sorted = $timestamps;
         rsort($sorted);
 
         $this->assertSame($sorted, $timestamps);
@@ -197,8 +197,8 @@ class AuditQueryTest extends TestCase
         $total = Audit::count();
         $this->assertGreaterThan(2, $total);
 
-        $page1 = (new AuditQuery())->latest()->limit(2)->offset(0)->builder()->get();
-        $page2 = (new AuditQuery())->latest()->limit(2)->offset(2)->builder()->get();
+        $page1 = (new AuditQuery)->latest()->limit(2)->offset(0)->builder()->get();
+        $page2 = (new AuditQuery)->latest()->limit(2)->offset(2)->builder()->get();
 
         $this->assertCount(2, $page1);
         $this->assertFalse($page1->pluck('id')->intersect($page2->pluck('id'))->isNotEmpty());

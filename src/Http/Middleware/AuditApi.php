@@ -9,16 +9,11 @@ use LaraArabDev\Recordkeeper\Resolvers\ApiActorResolver;
 
 final class AuditApi extends BaseAuditMiddleware
 {
-    /** @return string */
     protected function guard(): string
     {
         return 'api';
     }
 
-    /**
-     * @param  Request  $request
-     * @return mixed
-     */
     protected function resolveActor(Request $request): mixed
     {
         return ApiActorResolver::resolve();

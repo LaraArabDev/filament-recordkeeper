@@ -32,7 +32,7 @@ class EncryptAttributeTest extends TestCase
 
     public function test_decrypt_recovers_original_value(): void
     {
-        $original  = 'my-secret-123';
+        $original = 'my-secret-123';
         $encrypted = EncryptAttribute::redact($original);
 
         $this->assertSame($original, EncryptAttribute::decrypt($encrypted));
@@ -65,7 +65,7 @@ class EncryptAttributeTest extends TestCase
 
     public function test_does_not_store_plaintext_in_encrypted_output(): void
     {
-        $secret    = 'super-secret-ssn-123';
+        $secret = 'super-secret-ssn-123';
         $encrypted = EncryptAttribute::redact($secret);
 
         $this->assertStringNotContainsString($secret, $encrypted);

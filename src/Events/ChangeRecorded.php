@@ -15,7 +15,6 @@ final class ChangeRecorded
     use InteractsWithSockets;
     use SerializesModels;
 
-    /** @param  Audit  $audit */
     public function __construct(
         public readonly Audit $audit,
     ) {}

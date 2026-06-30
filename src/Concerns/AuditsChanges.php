@@ -6,39 +6,33 @@ namespace LaraArabDev\Recordkeeper\Concerns;
 
 use LaraArabDev\Recordkeeper\Recordkeeper;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
+use OwenIt\Auditing\Auditable;
 
 trait AuditsChanges
 {
-    use \OwenIt\Auditing\Auditable;
+    use Auditable;
 
-    /** @var array */
     protected array $auditInclude = [];
 
-    /** @var array */
     protected array $auditExclude = [];
 
-    /** @var array */
     protected array $auditEvents = [];
 
-    /** @var array */
     protected array $attributeModifiers = [];
 
-    /** @var int */
     protected int $auditThreshold = 0;
 
-    /** @return void */
     public function initializeAuditsChanges(): void
     {
         $resolved = AttributeResolver::resolve($this);
 
-        $this->auditInclude       = $resolved->auditInclude;
-        $this->auditExclude       = $resolved->auditExclude;
-        $this->auditEvents        = $resolved->auditEvents;
+        $this->auditInclude = $resolved->auditInclude;
+        $this->auditExclude = $resolved->auditExclude;
+        $this->auditEvents = $resolved->auditEvents;
         $this->attributeModifiers = $resolved->attributeModifiers;
-        $this->auditThreshold     = $resolved->auditThreshold;
+        $this->auditThreshold = $resolved->auditThreshold;
     }
 
-    /** @return array */
     public function generateTags(): array
     {
         $resolved = AttributeResolver::resolve($this);
@@ -49,10 +43,6 @@ trait AuditsChanges
         );
     }
 
-    /**
-     * @param  array  $data
-     * @return array
-     */
     public function transformAudit(array $data): array
     {
         $data['tags'] = implode(',', $this->generateTags());
@@ -85,10 +75,6 @@ trait AuditsChanges
         return app(Recordkeeper::class)->decorate($data);
     }
 
-    /**
-     * @param  array  $context
-     * @return static
-     */
     public function auditContext(array $context): static
     {
         app(Recordkeeper::class)->pushContext($context);

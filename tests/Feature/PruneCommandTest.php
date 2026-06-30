@@ -25,7 +25,7 @@ class PruneCommandTest extends TestCase
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
 
         $this->artisan('recordkeeper:prune', ['--days' => 365, '--yes' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
 
         $this->assertDatabaseCount('audits', 0);
     }
@@ -37,7 +37,7 @@ class PruneCommandTest extends TestCase
         // created_at is now, which is within 365 days
 
         $this->artisan('recordkeeper:prune', ['--days' => 365, '--yes' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
 
         $this->assertDatabaseCount('audits', 1);
     }

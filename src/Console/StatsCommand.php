@@ -18,12 +18,11 @@ class StatsCommand extends Command
 
     protected $description = 'Show audit statistics dashboard';
 
-    /** @return int */
     public function handle(): int
     {
         $since = null;
         if ($this->option('since')) {
-            $ts    = strtotime((string) $this->option('since'));
+            $ts = strtotime((string) $this->option('since'));
             $since = $ts !== false ? Carbon::createFromTimestamp($ts) : null;
         }
 
@@ -58,12 +57,12 @@ class StatsCommand extends Command
             ->orderByDesc('count')
             ->limit(5)
             ->get()
-            ->map(fn ($r) => ['actor' => class_basename($r->user_type ?? '') . ' #' . $r->user_id, 'count' => $r->count])
+            ->map(fn ($r) => ['actor' => class_basename($r->user_type ?? '').' #'.$r->user_id, 'count' => $r->count])
             ->all();
 
         $stats = [
-            'total'      => $total,
-            'by_event'   => $byEvent,
+            'total' => $total,
+            'by_event' => $byEvent,
             'top_models' => $topModels,
             'top_actors' => $topActors,
         ];
@@ -75,7 +74,7 @@ class StatsCommand extends Command
         }
 
         $this->newLine();
-        $this->line("  <info>Total audits:</info> {$total}" . ($since ? " (since {$since->toDateString()})" : ''));
+        $this->line("  <info>Total audits:</info> {$total}".($since ? " (since {$since->toDateString()})" : ''));
         $this->newLine();
         $this->line('  <comment>By event:</comment>');
         $eventRows = array_map(fn ($e, $c) => ['event' => $e, 'count' => $c], array_keys($byEvent), array_values($byEvent));

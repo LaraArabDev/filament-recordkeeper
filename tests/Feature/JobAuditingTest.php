@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use LaraArabDev\Recordkeeper\Attributes\AuditJob;
 use LaraArabDev\Recordkeeper\Models\Audit;
@@ -69,7 +69,7 @@ final class JobAuditingTest extends TestCase
 
     public function test_job_queued_event_is_audited(): void
     {
-        $job = new AuditedJob();
+        $job = new AuditedJob;
 
         event(new JobQueued('sync', 'default', 'queued-id', $job, [], null));
 
@@ -110,9 +110,9 @@ final class JobAuditingTest extends TestCase
         event(new JobFailed('sync', $job, new \RuntimeException($message)));
     }
 
-    private function mockQueueJob(string $jobClass): \Illuminate\Contracts\Queue\Job
+    private function mockQueueJob(string $jobClass): Job
     {
-        $mock = $this->createMock(\Illuminate\Contracts\Queue\Job::class);
+        $mock = $this->createMock(Job::class);
         $mock->method('getName')->willReturn($jobClass);
         $mock->method('getRawBody')->willReturn(json_encode(['displayName' => $jobClass]));
         $mock->method('getQueue')->willReturn('default');

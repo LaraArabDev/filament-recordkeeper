@@ -22,10 +22,9 @@ class PruneCommand extends Command
         parent::__construct();
     }
 
-    /** @return int */
     public function handle(): int
     {
-        $days   = (int) ($this->option('days') ?: config('recordkeeper.retention.default_days', 365));
+        $days = (int) ($this->option('days') ?: config('recordkeeper.retention.default_days', 365));
         $dryRun = (bool) $this->option('dry-run');
 
         if ($dryRun) {

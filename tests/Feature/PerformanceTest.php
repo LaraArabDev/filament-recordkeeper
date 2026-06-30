@@ -57,7 +57,7 @@ class PerformanceTest extends TestCase
         });
 
         // AuditQuery eager-loads 'auditable' — should be 1 main query + 1 eager load = 2 max
-        $audits = (new AuditQuery())->model('Order')->builder()->get();
+        $audits = (new AuditQuery)->model('Order')->builder()->get();
 
         // Access the relationship on each item — must not fire extra queries
         foreach ($audits as $audit) {
@@ -85,11 +85,11 @@ class PerformanceTest extends TestCase
         // Insert some route audits
         for ($i = 0; $i < 5; $i++) {
             Audit::create([
-                'event'          => 'route.get',
+                'event' => 'route.get',
                 'auditable_type' => 'route',
-                'old_values'     => [],
-                'new_values'     => [],
-                'guard'          => $i % 2 === 0 ? 'web' : 'api',
+                'old_values' => [],
+                'new_values' => [],
+                'guard' => $i % 2 === 0 ? 'web' : 'api',
             ]);
         }
 

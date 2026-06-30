@@ -9,16 +9,6 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class Auditable
 {
-    /**
-     * @param  ?array  $events
-     * @param  array   $only
-     * @param  array   $exclude
-     * @param  array   $redact
-     * @param  array   $encrypt
-     * @param  ?int    $retentionDays
-     * @param  ?int    $threshold
-     * @param  array   $tags
-     */
     public function __construct(
         public readonly ?array $events = null,
         public readonly array $only = [],

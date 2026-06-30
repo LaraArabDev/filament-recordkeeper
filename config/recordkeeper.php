@@ -18,8 +18,8 @@ return [
     ],
 
     'rollback' => [
-        'enabled'         => true,
-        'permission'      => 'rollback_audits',
+        'enabled' => true,
+        'permission' => 'rollback_audits',
         'restore_deleted' => true,
     ],
 
@@ -40,7 +40,7 @@ return [
      */
     'retention' => [
         'default_days' => (int) env('RECORDKEEPER_RETENTION_DAYS', 0), // 0 = disabled
-        'per_model'    => [],
+        'per_model' => [],
     ],
 
     'guards' => [
@@ -50,8 +50,8 @@ return [
 
     'filament' => [
         'navigation_group' => 'Audit',
-        'navigation_icon'  => 'heroicon-o-clock',
-        'navigation_sort'  => 100,
+        'navigation_icon' => 'heroicon-o-clock',
+        'navigation_sort' => 100,
         'polling_interval' => null,
     ],
 
@@ -76,9 +76,9 @@ return [
      * When enabled, the write is dispatched as a job, adding < 2ms synchronous overhead.
      */
     'queue' => [
-        'enabled'    => env('RECORDKEEPER_QUEUE', false),
+        'enabled' => env('RECORDKEEPER_QUEUE', false),
         'connection' => env('RECORDKEEPER_QUEUE_CONNECTION', null),
-        'queue'      => env('RECORDKEEPER_QUEUE_NAME', 'audits'),
+        'queue' => env('RECORDKEEPER_QUEUE_NAME', 'audits'),
     ],
 
     'jobs' => [
@@ -98,22 +98,22 @@ return [
             'recordkeeper:tail',
         ],
         'metrics' => [
-            'memory'             => true,
-            'audit_count'        => true,
-            'anomaly'            => env('RECORDKEEPER_ANOMALY', false),
+            'memory' => true,
+            'audit_count' => true,
+            'anomaly' => env('RECORDKEEPER_ANOMALY', false),
             'anomaly_multiplier' => 2.0,
-            'anomaly_min_runs'   => 5,
+            'anomaly_min_runs' => 5,
         ],
     ],
 
     'http' => [
-        'enabled'         => env('RECORDKEEPER_HTTP', false),
-        'queue'           => env('RECORDKEEPER_HTTP_QUEUE', false),
-        'queue_name'      => env('RECORDKEEPER_HTTP_QUEUE_NAME', null),
+        'enabled' => env('RECORDKEEPER_HTTP', false),
+        'queue' => env('RECORDKEEPER_HTTP_QUEUE', false),
+        'queue_name' => env('RECORDKEEPER_HTTP_QUEUE_NAME', null),
         'capture_headers' => env('RECORDKEEPER_HTTP_HEADERS', false),
-        'capture_body'    => env('RECORDKEEPER_HTTP_BODY', false),
-        'body_limit'      => 1000,
-        'exclude_hosts'   => [],
+        'capture_body' => env('RECORDKEEPER_HTTP_BODY', false),
+        'body_limit' => 1000,
+        'exclude_hosts' => [],
     ],
 
     'listen' => [

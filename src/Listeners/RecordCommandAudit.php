@@ -6,6 +6,8 @@ namespace LaraArabDev\Recordkeeper\Listeners;
 
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Events\Dispatcher;
 use LaraArabDev\Recordkeeper\Attributes\AuditCommand;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
@@ -18,7 +20,7 @@ final class RecordCommandAudit
     private static array $startMaxIds = [];
 
     /** @return array<string, string> */
-    public function subscribe(\Illuminate\Events\Dispatcher $events): array
+    public function subscribe(Dispatcher $events): array
     {
         return [
             CommandStarting::class => 'onStarting',
@@ -26,18 +28,16 @@ final class RecordCommandAudit
         ];
     }
 
-    /** @param  CommandStarting  $event */
     public function onStarting(CommandStarting $event): void
     {
         if (! $this->shouldAudit($event->command)) {
             return;
         }
 
-        self::$startTimes[$event->command]  = microtime(true);
+        self::$startTimes[$event->command] = microtime(true);
         self::$startMaxIds[$event->command] = (int) (Audit::max('id') ?? 0);
     }
 
-    /** @param  CommandFinished  $event */
     public function onFinished(CommandFinished $event): void
     {
         if (! $this->shouldAudit($event->command)) {
@@ -53,11 +53,11 @@ final class RecordCommandAudit
         unset(self::$startTimes[$event->command], self::$startMaxIds[$event->command]);
 
         $commandClass = $this->resolveCommandClass($event->command);
-        $attr         = $commandClass ? $this->attribute($commandClass) : null;
+        $attr = $commandClass ? $this->attribute($commandClass) : null;
 
         $context = array_filter([
-            'command'     => $event->command,
-            'exit_code'   => $event->exitCode,
+            'command' => $event->command,
+            'exit_code' => $event->exitCode,
             'duration_ms' => $duration,
         ], fn ($v) => $v !== null);
 
@@ -79,25 +79,21 @@ final class RecordCommandAudit
             }
         }
 
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'command.finished',
+            'event' => 'command.finished',
             'auditable_type' => 'command',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'user_type'      => null,
-            'user_id'        => null,
-            'tags'           => implode(',', $attr?->tags ?? []),
-            'context'        => $context,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'user_type' => null,
+            'user_id' => null,
+            'tags' => implode(',', $attr?->tags ?? []),
+            'context' => $context,
         ]);
         $audit->save();
     }
 
-    /**
-     * @param  ?string  $command
-     * @return bool
-     */
     private function shouldAudit(?string $command): bool
     {
         if (! config('recordkeeper.enabled', true)) {
@@ -122,15 +118,9 @@ final class RecordCommandAudit
         return $commandClass && $this->attribute($commandClass) !== null;
     }
 
-    /**
-     * @param  string   $commandName
-     * @param  int      $duration
-     * @param  ?int     $auditCount
-     * @return ?array
-     */
     private function detectAnomaly(string $commandName, int $duration, ?int $auditCount): ?array
     {
-        $minRuns    = (int) config('recordkeeper.commands.metrics.anomaly_min_runs', 5);
+        $minRuns = (int) config('recordkeeper.commands.metrics.anomaly_min_runs', 5);
         $multiplier = (float) config('recordkeeper.commands.metrics.anomaly_multiplier', 2.0);
 
         $history = Audit::commandAudits()
@@ -145,7 +135,7 @@ final class RecordCommandAudit
         }
 
         $avgDuration = $history->avg(fn ($a) => $a->context['duration_ms'] ?? 0);
-        $avgAudits   = $history->avg(fn ($a) => $a->context['audit_count'] ?? 0);
+        $avgAudits = $history->avg(fn ($a) => $a->context['audit_count'] ?? 0);
 
         $reasons = [];
 
@@ -162,18 +152,14 @@ final class RecordCommandAudit
         }
 
         return [
-            'anomaly'        => true,
+            'anomaly' => true,
             'anomaly_reason' => implode('; ', $reasons),
         ];
     }
 
-    /**
-     * @param  string  $commandName
-     * @return ?string
-     */
     private function resolveCommandClass(string $commandName): ?string
     {
-        $artisan = app(\Illuminate\Contracts\Console\Kernel::class);
+        $artisan = app(Kernel::class);
 
         if (! method_exists($artisan, 'all')) {
             return null;
@@ -190,10 +176,6 @@ final class RecordCommandAudit
         return null;
     }
 
-    /**
-     * @param  string  $commandClass
-     * @return ?AuditCommand
-     */
     private function attribute(string $commandClass): ?AuditCommand
     {
         $attrs = (new \ReflectionClass($commandClass))->getAttributes(AuditCommand::class);

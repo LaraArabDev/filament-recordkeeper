@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
 use LaraArabDev\Recordkeeper\Actions\RedactValues;
-use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
@@ -27,7 +27,7 @@ class PrivacyTest extends TestCase
     {
         Order::create(['status' => 'pending', 'discount_code' => 'SAVE20']);
 
-        $audit    = Audit::where('event', 'created')->first();
+        $audit = Audit::where('event', 'created')->first();
         $modified = $audit->getModified();
 
         $this->assertSame('***', $modified['discount_code']['new'] ?? null);
@@ -53,7 +53,7 @@ class PrivacyTest extends TestCase
 
         Order::create(['status' => 'ok', 'password' => 'supersecret']);
 
-        $audit    = Audit::where('event', 'created')->first();
+        $audit = Audit::where('event', 'created')->first();
         $modified = $audit->getModified();
 
         $this->assertSame('***', $modified['password']['new'] ?? null);
@@ -63,7 +63,7 @@ class PrivacyTest extends TestCase
     {
         Order::create(['status' => 'active', 'total' => 99.99]);
 
-        $audit    = Audit::first();
+        $audit = Audit::first();
         $modified = $audit->getModified();
 
         // 'status' is not a sensitive field
@@ -78,7 +78,7 @@ class PrivacyTest extends TestCase
     {
         Order::create(['national_id' => '123-45-6789']);
 
-        $audit    = Audit::where('event', 'created')->first();
+        $audit = Audit::where('event', 'created')->first();
         $modified = $audit->getModified();
 
         $this->assertTrue(EncryptAttribute::isEncrypted($modified['national_id']['new'] ?? ''));
@@ -96,8 +96,8 @@ class PrivacyTest extends TestCase
     {
         Order::create(['national_id' => 'ABC-123']);
 
-        $audit     = Audit::first();
-        $modified  = $audit->getModified();
+        $audit = Audit::first();
+        $modified = $audit->getModified();
         $encrypted = $modified['national_id']['new'] ?? '';
 
         $this->assertSame('ABC-123', EncryptAttribute::decrypt($encrypted));
@@ -126,10 +126,10 @@ class PrivacyTest extends TestCase
         $action = app(RedactValues::class);
 
         $result = $action([
-            'name'     => 'John',
+            'name' => 'John',
             'password' => 'my-secret',
-            'token'    => 'abc123',
-            'email'    => 'john@example.com',
+            'token' => 'abc123',
+            'email' => 'john@example.com',
         ]);
 
         $this->assertSame('John', $result['name']);

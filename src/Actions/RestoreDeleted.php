@@ -13,21 +13,11 @@ final class RestoreDeleted
         private readonly Rollback $rollback,
     ) {}
 
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     public function handle(Audit $audit, bool $dryRun = false): mixed
     {
         return $this->__invoke($audit, $dryRun);
     }
 
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     public function __invoke(Audit $audit, bool $dryRun = false): mixed
     {
         return $this->rollback->revert($audit, $dryRun);

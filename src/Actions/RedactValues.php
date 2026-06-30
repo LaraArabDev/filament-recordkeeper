@@ -8,21 +8,11 @@ use LaraArabDev\Recordkeeper\Modifiers\RedactAttribute;
 
 final class RedactValues
 {
-    /**
-     * @param  array  $values
-     * @param  array  $patterns
-     * @return array
-     */
     public function handle(array $values, array $patterns = []): array
     {
         return $this->__invoke($values, $patterns);
     }
 
-    /**
-     * @param  array  $values
-     * @param  array  $patterns
-     * @return array
-     */
     public function __invoke(array $values, array $patterns = []): array
     {
         if (empty($patterns)) {

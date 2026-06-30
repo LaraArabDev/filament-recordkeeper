@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Facade;
 
 class Recordkeeper extends Facade
 {
-    /** @return string */
     protected static function getFacadeAccessor(): string
     {
         return \LaraArabDev\Recordkeeper\Recordkeeper::class;

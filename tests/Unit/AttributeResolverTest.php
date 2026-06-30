@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Unit;
 
+use Illuminate\Database\Eloquent\Model;
 use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 use LaraArabDev\Recordkeeper\Modifiers\RedactAttribute;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
@@ -89,14 +90,14 @@ class AttributeResolverTest extends TestCase
         AttributeResolver::clearCache();
 
         // Use a model instance so guessModelAttributes can read getFillable()
-        $order  = new Order();
+        $order = new Order;
         $config = AttributeResolver::resolve($order);
 
         // 'password' is in the orders table — it should be auto-redacted
         // The pattern match is on attributes returned by getFillable/getCasts
         // Since Order has $guarded = [], fillable is empty; pattern matching
         // works on whatever the model exposes. We test the logic directly:
-        $patterns   = ['password'];
+        $patterns = ['password'];
         $attributes = ['password', 'status', 'total'];
 
         foreach ($attributes as $attr) {
@@ -135,7 +136,7 @@ class AttributeResolverTest extends TestCase
         AttributeResolver::clearCache();
 
         // Use an anonymous model with no #[Auditable] attribute
-        $config = AttributeResolver::resolve(new class extends \Illuminate\Database\Eloquent\Model {});
+        $config = AttributeResolver::resolve(new class extends Model {});
 
         $this->assertSame(90, $config->retentionDays);
     }
@@ -163,8 +164,8 @@ class AttributeResolverTest extends TestCase
 
     public function test_instance_and_class_string_resolve_to_same_cache_entry(): void
     {
-        $instance = new Order();
-        $class    = Order::class;
+        $instance = new Order;
+        $class = Order::class;
 
         $configA = AttributeResolver::resolve($instance);
         $configB = AttributeResolver::resolve($class);

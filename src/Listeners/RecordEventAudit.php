@@ -9,11 +9,6 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 
 final class RecordEventAudit
 {
-    /**
-     * @param  string  $eventName
-     * @param  array   $payload
-     * @return void
-     */
     public function handle(string $eventName, array $payload): void
     {
         if (! config('recordkeeper.enabled', true)) {
@@ -29,7 +24,7 @@ final class RecordEventAudit
 
         $eventClass = $eventName;
 
-        $attr     = $this->attribute($eventClass);
+        $attr = $this->attribute($eventClass);
         $inConfig = in_array($eventClass, config('recordkeeper.listen', []), true);
 
         if ($attr === null && ! $inConfig) {
@@ -42,25 +37,21 @@ final class RecordEventAudit
             $context['payload'] = $this->serializePayload($payload);
         }
 
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'event.' . class_basename($eventClass),
+            'event' => 'event.'.class_basename($eventClass),
             'auditable_type' => 'event',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'user_type'      => null,
-            'user_id'        => null,
-            'tags'           => implode(',', $attr?->tags ?? []),
-            'context'        => $context,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'user_type' => null,
+            'user_id' => null,
+            'tags' => implode(',', $attr?->tags ?? []),
+            'context' => $context,
         ]);
         $audit->save();
     }
 
-    /**
-     * @param  string  $eventClass
-     * @return ?AuditEvent
-     */
     private function attribute(string $eventClass): ?AuditEvent
     {
         if (! class_exists($eventClass)) {
@@ -72,10 +63,6 @@ final class RecordEventAudit
         return $attrs ? $attrs[0]->newInstance() : null;
     }
 
-    /**
-     * @param  array  $payload
-     * @return array
-     */
     private function serializePayload(array $payload): array
     {
         $result = [];

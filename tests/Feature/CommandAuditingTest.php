@@ -129,14 +129,14 @@ final class CommandAuditingTest extends TestCase
     public function test_audit_count_counts_only_audits_created_during_command(): void
     {
         Audit::create([
-            'event'          => 'updated',
+            'event' => 'updated',
             'auditable_type' => 'system',
-            'old_values'     => [],
-            'new_values'     => [],
+            'old_values' => [],
+            'new_values' => [],
         ]);
 
-        $input  = new StringInput('');
-        $output = new NullOutput();
+        $input = new StringInput('');
+        $output = new NullOutput;
 
         event(new CommandStarting('cache:clear', $input, $output));
 
@@ -152,8 +152,8 @@ final class CommandAuditingTest extends TestCase
 
     public function test_audit_count_excludes_command_finished_events(): void
     {
-        $input  = new StringInput('');
-        $output = new NullOutput();
+        $input = new StringInput('');
+        $output = new NullOutput;
 
         event(new CommandStarting('cache:clear', $input, $output));
 
@@ -179,23 +179,23 @@ final class CommandAuditingTest extends TestCase
     public function test_anomaly_flagged_when_audit_count_spikes(): void
     {
         config([
-            'recordkeeper.commands.metrics.anomaly'            => true,
-            'recordkeeper.commands.metrics.anomaly_min_runs'   => 3,
+            'recordkeeper.commands.metrics.anomaly' => true,
+            'recordkeeper.commands.metrics.anomaly_min_runs' => 3,
             'recordkeeper.commands.metrics.anomaly_multiplier' => 1.5,
         ]);
 
         foreach (range(1, 3) as $i) {
             Audit::create([
-                'event'          => 'command.finished',
+                'event' => 'command.finished',
                 'auditable_type' => 'command',
-                'old_values'     => [],
-                'new_values'     => [],
-                'context'        => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 1],
+                'old_values' => [],
+                'new_values' => [],
+                'context' => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 1],
             ]);
         }
 
-        $input  = new StringInput('');
-        $output = new NullOutput();
+        $input = new StringInput('');
+        $output = new NullOutput;
 
         event(new CommandStarting('cache:clear', $input, $output));
 
@@ -218,7 +218,7 @@ final class CommandAuditingTest extends TestCase
     public function test_anomaly_not_flagged_without_enough_history(): void
     {
         config([
-            'recordkeeper.commands.metrics.anomaly'          => true,
+            'recordkeeper.commands.metrics.anomaly' => true,
             'recordkeeper.commands.metrics.anomaly_min_runs' => 5,
         ]);
 
@@ -235,11 +235,11 @@ final class CommandAuditingTest extends TestCase
 
         foreach (range(1, 5) as $i) {
             Audit::create([
-                'event'          => 'command.finished',
+                'event' => 'command.finished',
                 'auditable_type' => 'command',
-                'old_values'     => [],
-                'new_values'     => [],
-                'context'        => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 0],
+                'old_values' => [],
+                'new_values' => [],
+                'context' => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 0],
             ]);
         }
 
@@ -252,8 +252,8 @@ final class CommandAuditingTest extends TestCase
 
     private function fireCommand(string $command, int $exitCode): void
     {
-        $input  = new StringInput('');
-        $output = new NullOutput();
+        $input = new StringInput('');
+        $output = new NullOutput;
 
         event(new CommandStarting($command, $input, $output));
         event(new CommandFinished($command, $input, $output, $exitCode));

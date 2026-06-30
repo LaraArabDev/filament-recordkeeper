@@ -18,8 +18,8 @@ class RouteAuditingTest extends TestCase
 
         Route::middleware(AuditRoute::class)->get('/test-web', fn () => response()->json(['ok' => true]));
         Route::middleware([AuditApi::class])->get('/test-api', fn () => response()->json(['ok' => true]));
-        Route::middleware([AuditRoute::class . ':body=true'])->post('/test-body', fn () => response()->json(['ok' => true]));
-        Route::middleware([AuditRoute::class . ':sample=0'])->get('/test-sample', fn () => response()->json(['ok' => true]));
+        Route::middleware([AuditRoute::class.':body=true'])->post('/test-body', fn () => response()->json(['ok' => true]));
+        Route::middleware([AuditRoute::class.':sample=0'])->get('/test-sample', fn () => response()->json(['ok' => true]));
     }
 
     public function test_web_route_hit_is_recorded_with_status(): void
@@ -37,7 +37,7 @@ class RouteAuditingTest extends TestCase
     {
         $this->post('/test-body', ['name' => 'John', 'password' => 'secret123'])->assertOk();
 
-        $audit    = Audit::where('event', 'route.post')->first();
+        $audit = Audit::where('event', 'route.post')->first();
         $newValues = $audit->new_values ?? [];
 
         $this->assertSame('***', $newValues['password'] ?? null);

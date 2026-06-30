@@ -76,33 +76,33 @@ class CommandMetricsWidget extends ChartWidget
             ->reverse()
             ->values();
 
-        $labels      = [];
-        $durations   = [];
+        $labels = [];
+        $durations = [];
         $auditCounts = [];
-        $colors      = [];
+        $colors = [];
 
         foreach ($runs as $run) {
-            $labels[]      = $run->created_at?->format('m/d H:i') ?? '?';
-            $durations[]   = $run->context['duration_ms'] ?? 0;
+            $labels[] = $run->created_at?->format('m/d H:i') ?? '?';
+            $durations[] = $run->context['duration_ms'] ?? 0;
             $auditCounts[] = $run->context['audit_count'] ?? 0;
-            $colors[]      = ! empty($run->context['anomaly']) ? 'rgba(239,68,68,0.7)' : 'rgba(99,102,241,0.7)';
+            $colors[] = ! empty($run->context['anomaly']) ? 'rgba(239,68,68,0.7)' : 'rgba(99,102,241,0.7)';
         }
 
         return [
-            'labels'   => $labels,
+            'labels' => $labels,
             'datasets' => [
                 [
-                    'label'           => 'Duration (ms)',
-                    'data'            => $durations,
+                    'label' => 'Duration (ms)',
+                    'data' => $durations,
                     'backgroundColor' => $colors,
-                    'yAxisID'         => 'y',
+                    'yAxisID' => 'y',
                 ],
                 [
-                    'label'           => 'Audit Impact',
-                    'data'            => $auditCounts,
+                    'label' => 'Audit Impact',
+                    'data' => $auditCounts,
                     'backgroundColor' => 'rgba(16,185,129,0.5)',
-                    'yAxisID'         => 'y1',
-                    'type'            => 'line',
+                    'yAxisID' => 'y1',
+                    'type' => 'line',
                 ],
             ],
         ];
@@ -113,7 +113,7 @@ class CommandMetricsWidget extends ChartWidget
     {
         return [
             'scales' => [
-                'y'  => ['position' => 'left', 'title' => ['display' => true, 'text' => 'Duration (ms)']],
+                'y' => ['position' => 'left', 'title' => ['display' => true, 'text' => 'Duration (ms)']],
                 'y1' => ['position' => 'right', 'grid' => ['drawOnChartArea' => false], 'title' => ['display' => true, 'text' => 'Audit Impact']],
             ],
         ];

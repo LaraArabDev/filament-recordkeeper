@@ -2,121 +2,128 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__.'/../vendor/autoload.php';
 
 use Illuminate\Config\Repository;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\DatabaseServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Exceptions\Handler;
+use Illuminate\Queue\QueueServiceProvider;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Schema;
+use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\RecordkeeperServiceProvider;
 use OwenIt\Auditing\AuditingServiceProvider;
+use OwenIt\Auditing\Resolvers\UserResolver;
 
-$app = new Application(realpath(__DIR__ . '/..'));
+$app = new Application(realpath(__DIR__.'/..'));
 
-$app->useStoragePath(sys_get_temp_dir() . '/recordkeeper-bench');
+$app->useStoragePath(sys_get_temp_dir().'/recordkeeper-bench');
 
 $app->singleton('config', fn () => new Repository([
     'app' => [
-        'key'   => 'base64:' . base64_encode(random_bytes(32)),
+        'key' => 'base64:'.base64_encode(random_bytes(32)),
         'debug' => false,
-        'env'   => 'testing',
+        'env' => 'testing',
     ],
     'database' => [
-        'default'     => 'benchmark',
+        'default' => 'benchmark',
         'connections' => [
             'benchmark' => [
-                'driver'   => 'sqlite',
+                'driver' => 'sqlite',
                 'database' => ':memory:',
-                'prefix'   => '',
+                'prefix' => '',
                 'foreign_key_constraints' => false,
             ],
         ],
     ],
     'queue' => [
-        'default'     => 'sync',
+        'default' => 'sync',
         'connections' => ['sync' => ['driver' => 'sync']],
     ],
     'cache' => [
         'default' => 'array',
-        'stores'  => ['array' => ['driver' => 'array']],
+        'stores' => ['array' => ['driver' => 'array']],
     ],
     'audit' => [
-        'driver'         => 'database',
-        'implementation' => \LaraArabDev\Recordkeeper\Models\Audit::class,
-        'console'        => true,
-        'user'           => ['guards' => [], 'morph_prefix' => 'user', 'models' => []],
-        'resolver'       => \OwenIt\Auditing\Resolvers\UserResolver::class,
-        'events'         => ['created', 'updated', 'deleted', 'restored'],
-        'strict'         => false,
-        'timestamps'     => true,
-        'threshold'      => 0,
-        'drivers'        => [
+        'driver' => 'database',
+        'implementation' => Audit::class,
+        'console' => true,
+        'user' => ['guards' => [], 'morph_prefix' => 'user', 'models' => []],
+        'resolver' => UserResolver::class,
+        'events' => ['created', 'updated', 'deleted', 'restored'],
+        'strict' => false,
+        'timestamps' => true,
+        'threshold' => 0,
+        'drivers' => [
             'database' => [
-                'table'      => 'audits',
+                'table' => 'audits',
                 'connection' => null,
             ],
         ],
         'redacting' => [],
     ],
     'recordkeeper' => [
-        'enabled'  => true,
-        'events'   => ['created', 'updated', 'deleted', 'restored'],
-        'privacy'  => [
-            'mode'               => 'redact',
-            'mask'               => '***',
+        'enabled' => true,
+        'events' => ['created', 'updated', 'deleted', 'restored'],
+        'privacy' => [
+            'mode' => 'redact',
+            'mask' => '***',
             'sensitive_patterns' => ['password', 'secret', 'token', 'api_key'],
-            'global_exclude'     => ['remember_token'],
+            'global_exclude' => ['remember_token'],
         ],
-        'rollback'  => ['enabled' => true, 'restore_deleted' => true],
+        'rollback' => ['enabled' => true, 'restore_deleted' => true],
         'retention' => ['default_days' => 0, 'per_model' => []],
-        'guards'    => ['web' => true, 'api' => true],
-        'filament'  => ['navigation_group' => 'Audit', 'navigation_icon' => 'heroicon-o-clock'],
-        'strict'    => true,
-        'pipeline'  => [],
-        'queue'     => ['enabled' => false, 'connection' => null, 'queue' => 'audits'],
-        'jobs'      => ['enabled' => false, 'exclude' => []],
-        'commands'  => [
+        'guards' => ['web' => true, 'api' => true],
+        'filament' => ['navigation_group' => 'Audit', 'navigation_icon' => 'heroicon-o-clock'],
+        'strict' => true,
+        'pipeline' => [],
+        'queue' => ['enabled' => false, 'connection' => null, 'queue' => 'audits'],
+        'jobs' => ['enabled' => false, 'exclude' => []],
+        'commands' => [
             'enabled' => false,
             'exclude' => ['schedule:run', 'schedule:finish', 'queue:work', 'queue:listen'],
             'metrics' => [
-                'memory'             => true,
-                'audit_count'        => true,
-                'anomaly'            => false,
+                'memory' => true,
+                'audit_count' => true,
+                'anomaly' => false,
                 'anomaly_multiplier' => 2.0,
-                'anomaly_min_runs'   => 5,
+                'anomaly_min_runs' => 5,
             ],
         ],
         'http' => [
-            'enabled'         => false,
-            'queue'           => false,
-            'queue_name'      => null,
+            'enabled' => false,
+            'queue' => false,
+            'queue_name' => null,
             'capture_headers' => false,
-            'capture_body'    => false,
-            'body_limit'      => 1000,
-            'exclude_hosts'   => [],
+            'capture_body' => false,
+            'body_limit' => 1000,
+            'exclude_hosts' => [],
         ],
-        'listen'    => [],
+        'listen' => [],
         'discovery' => ['paths' => ['app/Models']],
     ],
 ]));
 
-$app->singleton(\Illuminate\Contracts\Console\Kernel::class, fn () => new class {
+$app->singleton(Kernel::class, fn () => new class
+{
     public function all(): array
     {
         return [];
     }
 });
 $app->singleton(
-    \Illuminate\Contracts\Debug\ExceptionHandler::class,
-    \Illuminate\Foundation\Exceptions\Handler::class
+    ExceptionHandler::class,
+    Handler::class
 );
 
 $app->register(new EventServiceProvider($app));
 $app->register(new DatabaseServiceProvider($app));
-$app->register(new \Illuminate\Queue\QueueServiceProvider($app));
+$app->register(new QueueServiceProvider($app));
 $app->register(new AuditingServiceProvider($app));
 $app->register(new RecordkeeperServiceProvider($app));
 

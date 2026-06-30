@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Event;
 use LaraArabDev\Recordkeeper\Events\ChangeRecorded;
 use LaraArabDev\Recordkeeper\Facades\Recordkeeper;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
-use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
 
 class ChangeRecordedEventTest extends TestCase

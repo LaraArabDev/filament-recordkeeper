@@ -6,7 +6,6 @@ namespace LaraArabDev\Recordkeeper\Http\Middleware;
 
 final class AuditRoute extends BaseAuditMiddleware
 {
-    /** @return string */
     protected function guard(): string
     {
         return 'web';

@@ -8,10 +8,6 @@ use OwenIt\Auditing\Contracts\AttributeRedactor;
 
 final class RedactAttribute implements AttributeRedactor
 {
-    /**
-     * @param  mixed  $value
-     * @return string
-     */
     public static function redact(mixed $value): string
     {
         return (string) config('recordkeeper.privacy.mask', '***');

@@ -27,7 +27,6 @@ class RollbackCommand extends Command
         parent::__construct();
     }
 
-    /** @return int */
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
@@ -60,7 +59,7 @@ class RollbackCommand extends Command
 
         $preview = $this->revertAudit->handle($audit, true);
         $this->line('  <comment>Dry-run preview:</comment>');
-        $this->line('  Action: ' . ($preview['action'] ?? 'update'));
+        $this->line('  Action: '.($preview['action'] ?? 'update'));
         TerminalRenderer::diff($audit);
 
         if ($dryRun) {
@@ -79,11 +78,6 @@ class RollbackCommand extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * @param  string  $batchId
-     * @param  bool    $dryRun
-     * @return int
-     */
     private function handleBatch(string $batchId, bool $dryRun): int
     {
         $results = $this->revertBatch->handle($batchId, $dryRun);
@@ -95,12 +89,12 @@ class RollbackCommand extends Command
         }
 
         if ($dryRun) {
-            $this->info('Dry-run — ' . count($results) . ' audit(s) would be reverted in batch: ' . $batchId);
+            $this->info('Dry-run — '.count($results).' audit(s) would be reverted in batch: '.$batchId);
 
             return self::SUCCESS;
         }
 
-        $this->info('Rolled back ' . count($results) . ' audit(s) in batch: ' . $batchId);
+        $this->info('Rolled back '.count($results).' audit(s) in batch: '.$batchId);
 
         return self::SUCCESS;
     }

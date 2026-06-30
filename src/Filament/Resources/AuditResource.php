@@ -30,43 +30,31 @@ class AuditResource extends Resource
 
     protected static ?string $slug = 'audits';
 
-    /** @return ?string */
     public static function getNavigationGroup(): ?string
     {
         return config('recordkeeper.filament.navigation_group', 'Audit');
     }
 
-    /** @return ?int */
     public static function getNavigationSort(): ?int
     {
         return (int) config('recordkeeper.filament.navigation_sort', 100);
     }
 
-    /** @return string */
     public static function getNavigationIcon(): string
     {
         return config('recordkeeper.filament.navigation_icon', 'heroicon-o-clock');
     }
 
-    /** @return bool */
     public static function canCreate(): bool
     {
         return false;
     }
 
-    /**
-     * @param  Form  $form
-     * @return Form
-     */
     public static function form(Form $form): Form
     {
         return $form->schema([]);
     }
 
-    /**
-     * @param  Table  $table
-     * @return Table
-     */
     public static function table(Table $table): Table
     {
         return $table
@@ -83,32 +71,32 @@ class AuditResource extends Resource
                 TextColumn::make('event')
                     ->badge()
                     ->color(fn (string $state): string => match (true) {
-                        $state === 'created'                                    => 'success',
-                        $state === 'updated'                                    => 'warning',
-                        in_array($state, ['deleted', 'forceDeleted'], true)    => 'danger',
-                        str_starts_with($state, 'route.')                      => 'info',
-                        default                                                 => 'gray',
+                        $state === 'created' => 'success',
+                        $state === 'updated' => 'warning',
+                        in_array($state, ['deleted', 'forceDeleted'], true) => 'danger',
+                        str_starts_with($state, 'route.') => 'info',
+                        default => 'gray',
                     })
                     ->searchable(),
 
                 TextColumn::make('auditable_type')
                     ->label('Subject')
                     ->formatStateUsing(fn ($state, $record) => $state
-                        ? class_basename((string) $state) . ' #' . $record->auditable_id
+                        ? class_basename((string) $state).' #'.$record->auditable_id
                         : '—')
                     ->searchable(),
 
                 TextColumn::make('user_id')
                     ->label('Actor')
                     ->formatStateUsing(fn ($state, $record) => $state
-                        ? class_basename((string) ($record->user_type ?? 'User')) . ' #' . $state
+                        ? class_basename((string) ($record->user_type ?? 'User')).' #'.$state
                         : 'system'),
 
                 TextColumn::make('guard')
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
-                        'web'   => 'gray',
-                        'api'   => 'info',
+                        'web' => 'gray',
+                        'api' => 'info',
                         default => 'warning',
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -175,7 +163,7 @@ class AuditResource extends Resource
                     ->query(fn (Builder $query, array $data) => $data['user_id']
                         ? $query->where('user_id', $data['user_id'])
                         : $query)
-                    ->indicateUsing(fn (array $data) => $data['user_id'] ? 'Actor #' . $data['user_id'] : null),
+                    ->indicateUsing(fn (array $data) => $data['user_id'] ? 'Actor #'.$data['user_id'] : null),
 
                 Filter::make('period')
                     ->form([
@@ -187,10 +175,10 @@ class AuditResource extends Resource
                         ->when($data['until'], fn ($q) => $q->whereDate('created_at', '<=', $data['until'])))
                     ->indicateUsing(function (array $data): ?string {
                         if ($data['from'] && $data['until']) {
-                            return $data['from'] . ' → ' . $data['until'];
+                            return $data['from'].' → '.$data['until'];
                         }
 
-                        return $data['from'] ? 'From ' . $data['from'] : ($data['until'] ? 'Until ' . $data['until'] : null);
+                        return $data['from'] ? 'From '.$data['from'] : ($data['until'] ? 'Until '.$data['until'] : null);
                     }),
 
                 Filter::make('batch_id')
@@ -202,7 +190,7 @@ class AuditResource extends Resource
                 TernaryFilter::make('rollbackable')
                     ->label('Only rollbackable')
                     ->queries(
-                        true:  fn (Builder $q) => $q->whereIn('event', ['created', 'updated', 'deleted', 'restored']),
+                        true: fn (Builder $q) => $q->whereIn('event', ['created', 'updated', 'deleted', 'restored']),
                         false: fn (Builder $q) => $q->whereNotIn('event', ['created', 'updated', 'deleted', 'restored']),
                     ),
             ])
@@ -229,10 +217,6 @@ class AuditResource extends Resource
             ]);
     }
 
-    /**
-     * @param  Infolist  $infolist
-     * @return Infolist
-     */
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -244,12 +228,12 @@ class AuditResource extends Resource
                         TextEntry::make('auditable_type')
                             ->label('Subject')
                             ->formatStateUsing(fn ($state, $record) => $state
-                                ? class_basename((string) $state) . ' #' . $record->auditable_id
+                                ? class_basename((string) $state).' #'.$record->auditable_id
                                 : '—'),
                         TextEntry::make('user_id')
                             ->label('Actor')
                             ->formatStateUsing(fn ($state, $record) => $state
-                                ? class_basename((string) ($record->user_type ?? 'User')) . ' #' . $state
+                                ? class_basename((string) ($record->user_type ?? 'User')).' #'.$state
                                 : 'system'),
                         TextEntry::make('guard')->badge(),
                         TextEntry::make('ip_address')->label('IP'),
@@ -276,10 +260,10 @@ class AuditResource extends Resource
                                 TextEntry::make('status_code')
                                     ->badge()
                                     ->color(fn (?int $state): string => match (true) {
-                                        $state === null    => 'gray',
-                                        $state < 300       => 'success',
-                                        $state < 400       => 'warning',
-                                        default            => 'danger',
+                                        $state === null => 'gray',
+                                        $state < 300 => 'success',
+                                        $state < 400 => 'warning',
+                                        default => 'danger',
                                     }),
                                 TextEntry::make('duration_ms')->suffix(' ms'),
                                 TextEntry::make('failed')
@@ -294,16 +278,14 @@ class AuditResource extends Resource
             ]);
     }
 
-    /** @return array */
     public static function getPages(): array
     {
         return [
             'index' => ListAudits::route('/'),
-            'view'  => ViewAudit::route('/{record}'),
+            'view' => ViewAudit::route('/{record}'),
         ];
     }
 
-    /** @return array */
     public static function getGloballySearchableAttributes(): array
     {
         return ['event', 'auditable_type', 'batch_id'];

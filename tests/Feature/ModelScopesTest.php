@@ -24,17 +24,17 @@ class ModelScopesTest extends TestCase
 
     private function makeRouteAudit(string $guard, ?string $userType = null, ?int $userId = null, ?string $batch = null): Audit
     {
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'route.get',
+            'event' => 'route.get',
             'auditable_type' => 'route',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'guard'          => $guard,
-            'user_type'      => $userType,
-            'user_id'        => $userId,
-            'batch_id'       => $batch,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'guard' => $guard,
+            'user_type' => $userType,
+            'user_id' => $userId,
+            'batch_id' => $batch,
         ]);
         $audit->save();
 
@@ -109,7 +109,7 @@ class ModelScopesTest extends TestCase
     public function test_scope_for_actor_type_by_short_name(): void
     {
         $this->makeRouteAudit('admin', 'App\\Models\\Admin', 1);
-        $this->makeRouteAudit('web',   'App\\Models\\User',  2);
+        $this->makeRouteAudit('web', 'App\\Models\\User', 2);
 
         $adminAudits = Audit::forActorType('Admin')->get();
 
@@ -135,15 +135,15 @@ class ModelScopesTest extends TestCase
         $order = Order::create(['status' => 'pending']);
 
         // Manually craft an audit row where the actor is an Order (unusual but valid)
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'custom.event',
+            'event' => 'custom.event',
             'auditable_type' => 'system',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'user_type'      => Order::class,
-            'user_id'        => $order->id,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'user_type' => Order::class,
+            'user_id' => $order->id,
         ]);
         $audit->save();
 
@@ -234,7 +234,7 @@ class ModelScopesTest extends TestCase
     public function test_scopes_are_composable(): void
     {
         $this->makeRouteAudit('api', 'App\\Models\\Admin', 7);
-        $this->makeRouteAudit('api', 'App\\Models\\User',  8);
+        $this->makeRouteAudit('api', 'App\\Models\\User', 8);
         $this->makeRouteAudit('web', 'App\\Models\\Admin', 7);
 
         // Only API calls made by Admin #7

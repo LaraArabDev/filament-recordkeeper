@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
 use Illuminate\Http\Client\Events\ResponseReceived;
@@ -24,7 +25,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_outbound_http_is_recorded_on_response(): void
     {
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -41,7 +42,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_duration_is_recorded(): void
     {
-        $request  = $this->makeRequest('POST', 'https://api.hubspot.com/crm/v3/objects/contacts');
+        $request = $this->makeRequest('POST', 'https://api.hubspot.com/crm/v3/objects/contacts');
         $response = $this->makeResponse(201);
 
         event(new RequestSending($request));
@@ -56,8 +57,8 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_failed_connection_is_recorded(): void
     {
-        $request   = $this->makeRequest('GET', 'https://unavailable.example.com/api');
-        $exception = new \Illuminate\Http\Client\ConnectionException('Connection refused');
+        $request = $this->makeRequest('GET', 'https://unavailable.example.com/api');
+        $exception = new ConnectionException('Connection refused');
 
         event(new RequestSending($request));
         event(new ConnectionFailed($request, $exception));
@@ -73,7 +74,7 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config(['recordkeeper.http.exclude_hosts' => ['internal.example.com']]);
 
-        $request  = $this->makeRequest('GET', 'https://internal.example.com/health');
+        $request = $this->makeRequest('GET', 'https://internal.example.com/health');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -86,7 +87,7 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config(['recordkeeper.http.enabled' => false]);
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -98,15 +99,15 @@ final class HttpOutboundTrackingTest extends TestCase
     public function test_request_linked_to_job_audit(): void
     {
         $audit = Audit::create([
-            'event'          => 'job.processing',
+            'event' => 'job.processing',
             'auditable_type' => 'job',
-            'old_values'     => [],
-            'new_values'     => [],
+            'old_values' => [],
+            'new_values' => [],
         ]);
 
         app(HttpTracker::class)->setContext($audit->id);
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -123,7 +124,7 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         app(HttpTracker::class)->clearContext();
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -138,10 +139,10 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config([
             'recordkeeper.http.capture_body' => true,
-            'recordkeeper.http.body_limit'   => 50,
+            'recordkeeper.http.body_limit' => 50,
         ]);
 
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data');
+        $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200, str_repeat('x', 100));
 
         event(new RequestSending($request));
@@ -157,7 +158,7 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config(['recordkeeper.http.capture_headers' => true]);
 
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data', ['X-Custom' => 'value']);
+        $request = $this->makeRequest('GET', 'https://api.example.com/data', ['X-Custom' => 'value']);
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -171,16 +172,16 @@ final class HttpOutboundTrackingTest extends TestCase
     public function test_audit_has_many_http_requests(): void
     {
         $audit = Audit::create([
-            'event'          => 'job.processing',
+            'event' => 'job.processing',
             'auditable_type' => 'job',
-            'old_values'     => [],
-            'new_values'     => [],
+            'old_values' => [],
+            'new_values' => [],
         ]);
 
         app(HttpTracker::class)->setContext($audit->id);
 
         foreach (['https://api.stripe.com/charge', 'https://api.hubspot.com/contact'] as $url) {
-            $request  = $this->makeRequest('POST', $url);
+            $request = $this->makeRequest('POST', $url);
             $response = $this->makeResponse(201);
             event(new RequestSending($request));
             event(new ResponseReceived($request, $response));
@@ -193,7 +194,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_put_method_stored_correctly(): void
     {
-        $request  = $this->makeRequest('PUT', 'https://api.example.com/users/1');
+        $request = $this->makeRequest('PUT', 'https://api.example.com/users/1');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -204,7 +205,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_delete_method_stored_correctly(): void
     {
-        $request  = $this->makeRequest('DELETE', 'https://api.example.com/users/1');
+        $request = $this->makeRequest('DELETE', 'https://api.example.com/users/1');
         $response = $this->makeResponse(204);
 
         event(new RequestSending($request));
@@ -217,7 +218,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_4xx_response_stored_as_not_failed(): void
     {
-        $request  = $this->makeRequest('GET', 'https://api.example.com/missing');
+        $request = $this->makeRequest('GET', 'https://api.example.com/missing');
         $response = $this->makeResponse(404);
 
         event(new RequestSending($request));
@@ -230,7 +231,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_5xx_response_stored_as_not_failed(): void
     {
-        $request  = $this->makeRequest('POST', 'https://api.example.com/action');
+        $request = $this->makeRequest('POST', 'https://api.example.com/action');
         $response = $this->makeResponse(503);
 
         event(new RequestSending($request));
@@ -243,7 +244,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_response_body_not_captured_by_default(): void
     {
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data');
+        $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200, '{"secret":"value"}');
 
         event(new RequestSending($request));
@@ -254,7 +255,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_request_headers_not_captured_by_default(): void
     {
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data', ['Authorization' => 'Bearer token']);
+        $request = $this->makeRequest('GET', 'https://api.example.com/data', ['Authorization' => 'Bearer token']);
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));
@@ -268,11 +269,11 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config([
             'recordkeeper.http.capture_body' => true,
-            'recordkeeper.http.body_limit'   => 100,
+            'recordkeeper.http.body_limit' => 100,
         ]);
 
-        $body     = str_repeat('a', 50);
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data');
+        $body = str_repeat('a', 50);
+        $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200, $body);
 
         event(new RequestSending($request));
@@ -285,8 +286,8 @@ final class HttpOutboundTrackingTest extends TestCase
     {
         config(['recordkeeper.http.exclude_hosts' => ['blocked.example.com']]);
 
-        $request   = $this->makeRequest('GET', 'https://blocked.example.com/api');
-        $exception = new \Illuminate\Http\Client\ConnectionException('refused');
+        $request = $this->makeRequest('GET', 'https://blocked.example.com/api');
+        $exception = new ConnectionException('refused');
 
         event(new RequestSending($request));
         event(new ConnectionFailed($request, $exception));
@@ -296,7 +297,7 @@ final class HttpOutboundTrackingTest extends TestCase
 
     public function test_created_at_timestamp_is_stored(): void
     {
-        $request  = $this->makeRequest('GET', 'https://api.example.com/data');
+        $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200);
 
         event(new RequestSending($request));

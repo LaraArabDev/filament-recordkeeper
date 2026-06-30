@@ -26,10 +26,10 @@ class AuditHttpRequest extends Model
     ];
 
     protected $casts = [
-        'failed'           => 'boolean',
-        'request_headers'  => 'array',
+        'failed' => 'boolean',
+        'request_headers' => 'array',
         'response_headers' => 'array',
-        'created_at'       => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     public function audit(): BelongsTo

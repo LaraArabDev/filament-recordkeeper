@@ -19,12 +19,11 @@ class TailCommand extends Command
 
     protected $description = 'Live-follow audit records (like tail -f)';
 
-    /** @return int */
     public function handle(): int
     {
-        $lastId   = (int) (Audit::max('id') ?? 0);
+        $lastId = (int) (Audit::max('id') ?? 0);
         $interval = max(1, (int) $this->option('interval'));
-        $json     = (bool) $this->option('json');
+        $json = (bool) $this->option('json');
 
         if (! $json) {
             $this->line('Watching for new audit records... (Ctrl-C to stop)');
@@ -35,7 +34,7 @@ class TailCommand extends Command
             $query = Audit::where('id', '>', $lastId)->orderBy('id');
 
             if ($this->option('model')) {
-                $query->where('auditable_type', 'like', '%' . $this->option('model'));
+                $query->where('auditable_type', 'like', '%'.$this->option('model'));
             }
             if ($this->option('event')) {
                 $query->where('event', $this->option('event'));
@@ -50,12 +49,12 @@ class TailCommand extends Command
                 $lastId = max($lastId, (int) $audit->id);
 
                 if ($json) {
-                    echo json_encode(TerminalRenderer::auditToRow($audit)) . "\n";
+                    echo json_encode(TerminalRenderer::auditToRow($audit))."\n";
                 } else {
-                    $time    = $audit->created_at?->format('H:i:s') ?? '';
-                    $event   = str_pad($audit->event, 20);
-                    $subject = class_basename((string) $audit->auditable_type) . ' #' . $audit->auditable_id;
-                    $actor   = $audit->user_id ? "User #{$audit->user_id}" : 'system';
+                    $time = $audit->created_at?->format('H:i:s') ?? '';
+                    $event = str_pad($audit->event, 20);
+                    $subject = class_basename((string) $audit->auditable_type).' #'.$audit->auditable_id;
+                    $actor = $audit->user_id ? "User #{$audit->user_id}" : 'system';
                     $changed = implode(', ', array_keys($audit->getModified() ?? []));
                     $this->line("{$time}  {$event}  {$subject}  {$actor}  {$changed}");
                 }

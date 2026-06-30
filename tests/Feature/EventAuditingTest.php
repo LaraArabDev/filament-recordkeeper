@@ -6,6 +6,7 @@ namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
 use LaraArabDev\Recordkeeper\Attributes\AuditEvent;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
 
 #[AuditEvent(tags: ['user'], capturePayload: true)]
@@ -55,7 +56,7 @@ final class EventAuditingTest extends TestCase
 
     public function test_event_without_attribute_is_not_audited(): void
     {
-        event(new NonAuditedLaravelEvent());
+        event(new NonAuditedLaravelEvent);
 
         $this->assertSame(0, Audit::where('event', 'like', 'event.%')->count());
     }
@@ -64,7 +65,7 @@ final class EventAuditingTest extends TestCase
     {
         config(['recordkeeper.listen' => [NonAuditedLaravelEvent::class]]);
 
-        event(new NonAuditedLaravelEvent());
+        event(new NonAuditedLaravelEvent);
 
         $this->assertSame(1, Audit::where('event', 'like', 'event.%')->count());
     }
@@ -88,7 +89,7 @@ final class EventAuditingTest extends TestCase
     {
         event(new UserRegistered(1));
 
-        $results = app(\LaraArabDev\Recordkeeper\Support\AuditQuery::class)
+        $results = app(AuditQuery::class)
             ->events()
             ->builder()
             ->get();

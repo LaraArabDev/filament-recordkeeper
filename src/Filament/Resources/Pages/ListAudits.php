@@ -14,11 +14,10 @@ class ListAudits extends ListRecords
 {
     protected static string $resource = AuditResource::class;
 
-    /** @return array */
     public function getTabs(): array
     {
         return [
-            'all'     => Tab::make('All')
+            'all' => Tab::make('All')
                 ->badge(Audit::count()),
 
             'created' => Tab::make('Created')
@@ -33,7 +32,7 @@ class ListAudits extends ListRecords
                 ->modifyQueryUsing(fn (Builder $q) => $q->whereIn('event', ['deleted', 'forceDeleted']))
                 ->badge(Audit::whereIn('event', ['deleted', 'forceDeleted'])->count()),
 
-            'routes'  => Tab::make('Routes')
+            'routes' => Tab::make('Routes')
                 ->modifyQueryUsing(fn (Builder $q) => $q->where('event', 'like', 'route.%'))
                 ->badge(Audit::where('event', 'like', 'route.%')->count()),
         ];

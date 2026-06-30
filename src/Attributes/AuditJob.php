@@ -9,13 +9,6 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class AuditJob
 {
-    /**
-     * @param  bool   $queued
-     * @param  bool   $processing
-     * @param  bool   $processed
-     * @param  bool   $failed
-     * @param  array  $tags
-     */
     public function __construct(
         public readonly bool $queued = true,
         public readonly bool $processing = true,

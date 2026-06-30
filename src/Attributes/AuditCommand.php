@@ -9,9 +9,6 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class AuditCommand
 {
-    /**
-     * @param  array  $tags
-     */
     public function __construct(
         public readonly array $tags = [],
     ) {}

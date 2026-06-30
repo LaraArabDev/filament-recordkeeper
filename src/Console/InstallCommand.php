@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Console;
 
+use Filament\Panel;
 use Illuminate\Console\Command;
 
 class InstallCommand extends Command
@@ -12,7 +13,6 @@ class InstallCommand extends Command
 
     protected $description = 'Install the Recordkeeper package (publish config + migrations)';
 
-    /** @return int */
     public function handle(): int
     {
         $force = (bool) $this->option('force');
@@ -22,8 +22,8 @@ class InstallCommand extends Command
         if ($force || ! file_exists(config_path('recordkeeper.php'))) {
             $this->callSilently('vendor:publish', [
                 '--provider' => 'LaraArabDev\\Recordkeeper\\RecordkeeperServiceProvider',
-                '--tag'      => 'recordkeeper-config',
-                '--force'    => $force,
+                '--tag' => 'recordkeeper-config',
+                '--force' => $force,
             ]);
             $this->line('  <info>✓</info> Config published → config/recordkeeper.php');
         } else {
@@ -33,8 +33,8 @@ class InstallCommand extends Command
         if ($force || ! $this->recordkeeperMigrationExists()) {
             $this->callSilently('vendor:publish', [
                 '--provider' => 'LaraArabDev\\Recordkeeper\\RecordkeeperServiceProvider',
-                '--tag'      => 'recordkeeper-migrations',
-                '--force'    => $force,
+                '--tag' => 'recordkeeper-migrations',
+                '--force' => $force,
             ]);
             $this->line('  <info>✓</info> Extension migration published');
         } else {
@@ -44,8 +44,8 @@ class InstallCommand extends Command
         if ($force || ! class_exists('CreateAuditsTable')) {
             $this->callSilently('vendor:publish', [
                 '--provider' => 'OwenIt\\Auditing\\AuditingServiceProvider',
-                '--tag'      => 'migrations',
-                '--force'    => $force,
+                '--tag' => 'migrations',
+                '--force' => $force,
             ]);
             $this->line('  <info>✓</info> laravel-auditing migration published');
         } else {
@@ -55,8 +55,8 @@ class InstallCommand extends Command
         if ($force || ! file_exists(config_path('audit.php'))) {
             $this->callSilently('vendor:publish', [
                 '--provider' => 'OwenIt\\Auditing\\AuditingServiceProvider',
-                '--tag'      => 'config',
-                '--force'    => $force,
+                '--tag' => 'config',
+                '--force' => $force,
             ]);
             $this->line('  <info>✓</info> laravel-auditing config published → config/audit.php');
         } else {
@@ -65,7 +65,7 @@ class InstallCommand extends Command
 
         $this->newLine();
 
-        if (class_exists(\Filament\Panel::class)) {
+        if (class_exists(Panel::class)) {
             $this->info('Filament detected! Register the plugin in your panel provider:');
             $this->line('');
             $this->line('  use LaraArabDev\Recordkeeper\Filament\RecordkeeperPlugin;');
@@ -93,7 +93,6 @@ class InstallCommand extends Command
         return self::SUCCESS;
     }
 
-    /** @return bool */
     private function recordkeeperMigrationExists(): bool
     {
         return (bool) glob(database_path('migrations/*_add_recordkeeper_columns_to_audits_table.php'));

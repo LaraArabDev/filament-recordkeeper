@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
 use Illuminate\Support\Carbon;
+use LaraArabDev\Recordkeeper\Actions\PruneAudits;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
@@ -29,7 +30,7 @@ class PrunableTest extends TestCase
         Order::create(['status' => 'old']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(500)]);
 
-        $prunable = (new Audit())->prunable()->get();
+        $prunable = (new Audit)->prunable()->get();
 
         $this->assertCount(0, $prunable);
     }
@@ -41,7 +42,7 @@ class PrunableTest extends TestCase
         Order::create(['status' => 'old']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(60)]);
 
-        $prunable = (new Audit())->prunable()->get();
+        $prunable = (new Audit)->prunable()->get();
 
         $this->assertGreaterThan(0, $prunable->count());
     }
@@ -53,7 +54,7 @@ class PrunableTest extends TestCase
         Order::create(['status' => 'recent']);
         // created_at is now — within retention
 
-        $prunable = (new Audit())->prunable()->get();
+        $prunable = (new Audit)->prunable()->get();
 
         $this->assertCount(0, $prunable);
     }
@@ -64,7 +65,7 @@ class PrunableTest extends TestCase
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
 
         $this->artisan('recordkeeper:prune', ['--days' => 365, '--yes' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
 
         $this->assertDatabaseCount('audits', 0);
     }
@@ -75,7 +76,7 @@ class PrunableTest extends TestCase
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
 
         $this->artisan('recordkeeper:prune', ['--days' => 365, '--dry-run' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
 
         $this->assertDatabaseCount('audits', 1);
     }
@@ -86,7 +87,7 @@ class PrunableTest extends TestCase
         Order::create(['status' => 'b']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
 
-        $deleted = app(\LaraArabDev\Recordkeeper\Actions\PruneAudits::class)(365, false);
+        $deleted = app(PruneAudits::class)(365, false);
 
         $this->assertSame(2, $deleted);
         $this->assertDatabaseCount('audits', 0);
@@ -97,7 +98,7 @@ class PrunableTest extends TestCase
         Order::create(['status' => 'a']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
 
-        $count = app(\LaraArabDev\Recordkeeper\Actions\PruneAudits::class)(365, true);
+        $count = app(PruneAudits::class)(365, true);
 
         $this->assertSame(1, $count);
         $this->assertDatabaseCount('audits', 1);
@@ -111,7 +112,7 @@ class PrunableTest extends TestCase
         // Only make the first record old
         Audit::where('id', 1)->update(['created_at' => Carbon::now()->subDays(400)]);
 
-        $deleted = app(\LaraArabDev\Recordkeeper\Actions\PruneAudits::class)(365, false);
+        $deleted = app(PruneAudits::class)(365, false);
 
         $this->assertSame(1, $deleted);
         $this->assertDatabaseCount('audits', 1);

@@ -21,39 +21,39 @@ final class AuditWriteBench extends BenchCase
 {
     public function benchWriteAuditRow(): void
     {
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'updated',
+            'event' => 'updated',
             'auditable_type' => 'App\\Models\\Order',
-            'auditable_id'   => 1,
-            'old_values'     => ['status' => 'pending'],
-            'new_values'     => ['status' => 'paid'],
-            'user_type'      => null,
-            'user_id'        => null,
-            'tags'           => '',
-            'context'        => null,
+            'auditable_id' => 1,
+            'old_values' => ['status' => 'pending'],
+            'new_values' => ['status' => 'paid'],
+            'user_type' => null,
+            'user_id' => null,
+            'tags' => '',
+            'context' => null,
         ]);
         $audit->save();
     }
 
     public function benchWriteAuditRowWithContext(): void
     {
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'command.finished',
+            'event' => 'command.finished',
             'auditable_type' => 'command',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'user_type'      => null,
-            'user_id'        => null,
-            'tags'           => '',
-            'context'        => [
-                'command'        => 'import:orders',
-                'exit_code'      => 0,
-                'duration_ms'    => 1243,
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'user_type' => null,
+            'user_id' => null,
+            'tags' => '',
+            'context' => [
+                'command' => 'import:orders',
+                'exit_code' => 0,
+                'duration_ms' => 1243,
                 'memory_peak_mb' => 48.5,
-                'audit_count'    => 150,
+                'audit_count' => 150,
             ],
         ]);
         $audit->save();
@@ -62,40 +62,40 @@ final class AuditWriteBench extends BenchCase
     public function benchWriteHttpRequestRow(): void
     {
         AuditHttpRequest::create([
-            'audit_id'    => null,
-            'method'      => 'POST',
-            'url'         => 'https://api.stripe.com/v1/charges',
+            'audit_id' => null,
+            'method' => 'POST',
+            'url' => 'https://api.stripe.com/v1/charges',
             'status_code' => 200,
             'duration_ms' => 312,
-            'failed'      => false,
-            'created_at'  => now(),
+            'failed' => false,
+            'created_at' => now(),
         ]);
     }
 
     public function benchWriteAuditAndLinkedHttpRequest(): void
     {
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'job.processing',
+            'event' => 'job.processing',
             'auditable_type' => 'job',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => [],
-            'user_type'      => null,
-            'user_id'        => null,
-            'tags'           => '',
-            'context'        => ['job' => 'App\\Jobs\\ChargeStripe', 'queue' => 'default'],
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => [],
+            'user_type' => null,
+            'user_id' => null,
+            'tags' => '',
+            'context' => ['job' => 'App\\Jobs\\ChargeStripe', 'queue' => 'default'],
         ]);
         $audit->save();
 
         AuditHttpRequest::create([
-            'audit_id'    => $audit->id,
-            'method'      => 'POST',
-            'url'         => 'https://api.stripe.com/v1/charges',
+            'audit_id' => $audit->id,
+            'method' => 'POST',
+            'url' => 'https://api.stripe.com/v1/charges',
             'status_code' => 200,
             'duration_ms' => 412,
-            'failed'      => false,
-            'created_at'  => now(),
+            'failed' => false,
+            'created_at' => now(),
         ]);
     }
 }

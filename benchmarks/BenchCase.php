@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Benchmarks;
 
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 
@@ -21,14 +23,14 @@ abstract class BenchCase
 
     protected function makeHttpRequest(string $method, string $url): \Illuminate\Http\Client\Request
     {
-        $psr = new \GuzzleHttp\Psr7\Request($method, $url, ['Content-Type' => 'application/json']);
+        $psr = new Request($method, $url, ['Content-Type' => 'application/json']);
 
         return new \Illuminate\Http\Client\Request($psr);
     }
 
     protected function makeHttpResponse(int $status = 200, string $body = '{}'): \Illuminate\Http\Client\Response
     {
-        $psr = new \GuzzleHttp\Psr7\Response($status, [], $body);
+        $psr = new Response($status, [], $body);
 
         return new \Illuminate\Http\Client\Response($psr);
     }
@@ -36,26 +38,26 @@ abstract class BenchCase
     protected function seedAudits(int $count, array $overrides = []): void
     {
         $rows = [];
-        $now  = now()->toDateTimeString();
+        $now = now()->toDateTimeString();
 
         for ($i = 0; $i < $count; $i++) {
             $rows[] = array_merge([
-                'event'          => 'updated',
+                'event' => 'updated',
                 'auditable_type' => 'App\\Models\\Order',
-                'auditable_id'   => $i + 1,
-                'old_values'     => '{"status":"pending"}',
-                'new_values'     => '{"status":"paid"}',
-                'user_type'      => null,
-                'user_id'        => null,
-                'url'            => null,
-                'ip_address'     => null,
-                'user_agent'     => null,
-                'tags'           => null,
-                'guard'          => null,
-                'batch_id'       => null,
-                'context'        => null,
-                'created_at'     => $now,
-                'updated_at'     => $now,
+                'auditable_id' => $i + 1,
+                'old_values' => '{"status":"pending"}',
+                'new_values' => '{"status":"paid"}',
+                'user_type' => null,
+                'user_id' => null,
+                'url' => null,
+                'ip_address' => null,
+                'user_agent' => null,
+                'tags' => null,
+                'guard' => null,
+                'batch_id' => null,
+                'context' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
             ], $overrides);
         }
 

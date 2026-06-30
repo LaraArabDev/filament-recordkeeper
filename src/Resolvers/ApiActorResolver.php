@@ -9,7 +9,6 @@ use OwenIt\Auditing\Contracts\UserResolver;
 
 final class ApiActorResolver implements UserResolver
 {
-    /** @return mixed */
     public static function resolve(): mixed
     {
         foreach (config('auth.guards', []) as $name => $guard) {

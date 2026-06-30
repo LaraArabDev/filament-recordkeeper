@@ -33,25 +33,24 @@ class SearchCommand extends Command
         parent::__construct();
     }
 
-    /** @return int */
     public function handle(): int
     {
-        $limit  = (int) $this->option('limit');
-        $page   = max(1, (int) $this->option('page'));
+        $limit = (int) $this->option('limit');
+        $page = max(1, (int) $this->option('page'));
         $offset = ($page - 1) * $limit;
 
         $filters = array_filter([
             'model' => $this->option('model'),
             'event' => $this->option('event') ?: null,
-            'user'  => $this->option('user'),
+            'user' => $this->option('user'),
             'guard' => $this->option('guard'),
-            'tag'   => $this->option('tag'),
+            'tag' => $this->option('tag'),
             'batch' => $this->option('batch'),
             'since' => $this->option('since') ? strtotime((string) $this->option('since')) !== false
                 ? date('Y-m-d H:i:s', strtotime((string) $this->option('since')))
                 : $this->option('since') : null,
             'until' => $this->option('until'),
-            'q'     => $this->option('q'),
+            'q' => $this->option('q'),
         ]);
 
         $audits = ($this->searchAudits)($filters, $limit, $offset);
@@ -71,8 +70,8 @@ class SearchCommand extends Command
         $rows = $audits->map(fn ($a) => TerminalRenderer::auditToRow($a))->all();
 
         match ($format) {
-            'json'  => TerminalRenderer::json($rows),
-            'csv'   => TerminalRenderer::csv(array_keys($rows[0]), $rows),
+            'json' => TerminalRenderer::json($rows),
+            'csv' => TerminalRenderer::csv(array_keys($rows[0]), $rows),
             default => TerminalRenderer::table(array_keys($rows[0]), $rows),
         };
 

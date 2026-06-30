@@ -15,29 +15,24 @@ use ReflectionClass;
 
 final class AttributeResolver
 {
-    /** @var array */
     private static array $cache = [];
 
-    /**
-     * @param  string|object  $model
-     * @return AuditConfig
-     */
     public static function resolve(string|object $model): AuditConfig
     {
         $class = is_object($model) ? $model::class : $model;
 
-        if (isset(static::$cache[$class])) {
-            return static::$cache[$class];
+        if (isset(self::$cache[$class])) {
+            return self::$cache[$class];
         }
 
         $ref = new ReflectionClass($class);
 
-        $events        = config('recordkeeper.events', ['created', 'updated', 'deleted', 'restored']);
-        $include       = [];
-        $exclude       = config('recordkeeper.privacy.global_exclude', ['remember_token']);
-        $modifiers     = [];
-        $threshold     = 0;
-        $tags          = [];
+        $events = config('recordkeeper.events', ['created', 'updated', 'deleted', 'restored']);
+        $include = [];
+        $exclude = config('recordkeeper.privacy.global_exclude', ['remember_token']);
+        $modifiers = [];
+        $threshold = 0;
+        $tags = [];
         $retentionDays = (int) config('recordkeeper.retention.default_days', 365);
 
         $auditableAttrs = $ref->getAttributes(Auditable::class);
@@ -71,7 +66,7 @@ final class AttributeResolver
         }
 
         foreach ($ref->getAttributes(AuditExclude::class) as $attrRef) {
-            $attr    = $attrRef->newInstance();
+            $attr = $attrRef->newInstance();
             $exclude = array_merge($exclude, $attr->attributes);
         }
 
@@ -92,8 +87,8 @@ final class AttributeResolver
         $privacyMode = config('recordkeeper.privacy.mode', 'redact');
 
         if ($privacyMode !== 'off') {
-            $patterns   = config('recordkeeper.privacy.sensitive_patterns', []);
-            $properties = static::guessModelAttributes($model);
+            $patterns = config('recordkeeper.privacy.sensitive_patterns', []);
+            $properties = self::guessModelAttributes($model);
 
             foreach ($properties as $prop) {
                 if (isset($modifiers[$prop])) {
@@ -111,30 +106,25 @@ final class AttributeResolver
         }
 
         $config = new AuditConfig(
-            auditInclude:       $include,
-            auditExclude:       array_unique($exclude),
-            auditEvents:        $events,
+            auditInclude: $include,
+            auditExclude: array_unique($exclude),
+            auditEvents: $events,
             attributeModifiers: $modifiers,
-            auditThreshold:     $threshold,
-            auditTags:          $tags,
-            retentionDays:      $retentionDays,
+            auditThreshold: $threshold,
+            auditTags: $tags,
+            retentionDays: $retentionDays,
         );
 
-        static::$cache[$class] = $config;
+        self::$cache[$class] = $config;
 
         return $config;
     }
 
-    /** @return void */
     public static function clearCache(): void
     {
-        static::$cache = [];
+        self::$cache = [];
     }
 
-    /**
-     * @param  string|object  $model
-     * @return array
-     */
     private static function guessModelAttributes(string|object $model): array
     {
         $attributes = [];

@@ -46,25 +46,25 @@ return new class extends Migration
             // `event` index — filtering by created/updated/deleted/route.* is a core use-case.
             try {
                 $table->index('event', 'audits_event_index');
-            } catch (\Exception) {
+            } catch (Exception) {
             }
 
             // `guard` index — multi-guard apps filter by guard on every query.
             try {
                 $table->index('guard', 'audits_guard_index');
-            } catch (\Exception) {
+            } catch (Exception) {
             }
 
             // `batch_id` index — rollback and grouping queries.
             try {
                 $table->index('batch_id', 'audits_batch_id_index');
-            } catch (\Exception) {
+            } catch (Exception) {
             }
 
             // `created_at` index — time-range filtering and pruning queries.
             try {
                 $table->index('created_at', 'audits_created_at_index');
-            } catch (\Exception) {
+            } catch (Exception) {
             }
 
             // Composite index for the most common list-page query:
@@ -73,7 +73,7 @@ return new class extends Migration
             // but we add a covering index with event for filtered queries.
             try {
                 $table->index(['auditable_type', 'auditable_id', 'event'], 'audits_auditable_event_index');
-            } catch (\Exception) {
+            } catch (Exception) {
             }
         });
     }
@@ -85,7 +85,7 @@ return new class extends Migration
             foreach (['audits_event_index', 'audits_guard_index', 'audits_batch_id_index', 'audits_created_at_index', 'audits_auditable_event_index'] as $index) {
                 try {
                     $table->dropIndex($index);
-                } catch (\Exception) {
+                } catch (Exception) {
                 }
             }
 

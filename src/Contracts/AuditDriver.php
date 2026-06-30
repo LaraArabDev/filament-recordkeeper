@@ -9,9 +9,5 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 
 interface AuditDriver
 {
-    /**
-     * @param  AuditPayload  $payload
-     * @return Audit
-     */
     public function persist(AuditPayload $payload): Audit;
 }

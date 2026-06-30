@@ -8,7 +8,6 @@ use LaraArabDev\Recordkeeper\Filament\RelationManagers\AuditsRelationManager;
 
 trait HasAuditHistory
 {
-    /** @return array */
     public function getRelationManagers(): array
     {
         return array_merge(

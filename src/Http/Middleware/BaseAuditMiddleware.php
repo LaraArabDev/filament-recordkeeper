@@ -17,24 +17,13 @@ abstract class BaseAuditMiddleware
         private readonly RedactValues $redactValues,
     ) {}
 
-    /** @return string */
     abstract protected function guard(): string;
 
-    /**
-     * @param  Request  $request
-     * @return mixed
-     */
     protected function resolveActor(Request $request): mixed
     {
         return auth()->guard($this->guard())->user();
     }
 
-    /**
-     * @param  Request  $request
-     * @param  Closure  $next
-     * @param  string   ...$options
-     * @return Response
-     */
     public function handle(Request $request, Closure $next, string ...$options): Response
     {
         $opts = $this->parseOptions($options);
@@ -47,7 +36,7 @@ abstract class BaseAuditMiddleware
             return $next($request);
         }
 
-        $start    = microtime(true);
+        $start = microtime(true);
         $response = $next($request);
         $duration = (int) ((microtime(true) - $start) * 1000);
 
@@ -57,19 +46,12 @@ abstract class BaseAuditMiddleware
             if (config('recordkeeper.strict', false)) {
                 throw $e;
             }
-            Log::error('[Recordkeeper] Middleware audit failed: ' . $e->getMessage());
+            Log::error('[Recordkeeper] Middleware audit failed: '.$e->getMessage());
         }
 
         return $response;
     }
 
-    /**
-     * @param  Request   $request
-     * @param  Response  $response
-     * @param  array     $opts
-     * @param  int       $duration
-     * @return void
-     */
     protected function record(Request $request, Response $response, array $opts, int $duration): void
     {
         $user = $this->resolveActor($request);
@@ -84,42 +66,38 @@ abstract class BaseAuditMiddleware
             $tags[] = $opts['tag'];
         }
 
-        $audit = new Audit();
+        $audit = new Audit;
         $audit->fill([
-            'event'          => 'route.' . strtolower($request->method()),
+            'event' => 'route.'.strtolower($request->method()),
             'auditable_type' => 'route',
-            'auditable_id'   => null,
-            'old_values'     => [],
-            'new_values'     => $body,
-            'user_type'      => $user ? $user::class : null,
-            'user_id'        => $user?->getKey(),
-            'url'            => $request->fullUrl(),
-            'ip_address'     => $request->ip(),
-            'user_agent'     => $request->userAgent(),
-            'tags'           => implode(',', $tags),
-            'guard'          => $this->guard(),
-            'batch_id'       => null,
-            'context'        => [
-                'route'       => $request->route()?->getName() ?? $request->path(),
-                'method'      => $request->method(),
-                'status'      => $response->getStatusCode(),
+            'auditable_id' => null,
+            'old_values' => [],
+            'new_values' => $body,
+            'user_type' => $user ? $user::class : null,
+            'user_id' => $user?->getKey(),
+            'url' => $request->fullUrl(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'tags' => implode(',', $tags),
+            'guard' => $this->guard(),
+            'batch_id' => null,
+            'context' => [
+                'route' => $request->route()?->getName() ?? $request->path(),
+                'method' => $request->method(),
+                'status' => $response->getStatusCode(),
                 'duration_ms' => $duration,
             ],
         ]);
         $audit->save();
     }
 
-    /**
-     * @param  array  $options
-     * @return array
-     */
     protected function parseOptions(array $options): array
     {
         $opts = [
-            'tag'      => null,
-            'body'     => false,
+            'tag' => null,
+            'body' => false,
             'response' => false,
-            'sample'   => 1.0,
+            'sample' => 1.0,
         ];
 
         foreach ($options as $option) {
@@ -127,13 +105,13 @@ abstract class BaseAuditMiddleware
                 continue;
             }
             [$key, $value] = explode('=', $option, 2);
-            $key           = trim($key);
-            $value         = trim($value);
+            $key = trim($key);
+            $value = trim($value);
 
             $opts[$key] = match ($key) {
                 'body', 'response' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-                'sample'           => (float) $value,
-                default            => $value,
+                'sample' => (float) $value,
+                default => $value,
             };
         }
 

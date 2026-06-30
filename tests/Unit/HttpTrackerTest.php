@@ -14,7 +14,7 @@ final class HttpTrackerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tracker = new HttpTracker();
+        $this->tracker = new HttpTracker;
     }
 
     public function test_initial_audit_id_is_null(): void
@@ -47,7 +47,7 @@ final class HttpTrackerTest extends TestCase
 
     public function test_finish_request_returns_duration(): void
     {
-        $obj   = new \stdClass();
+        $obj = new \stdClass;
         $start = microtime(true);
         usleep(5000);
         $end = microtime(true);
@@ -63,7 +63,7 @@ final class HttpTrackerTest extends TestCase
 
     public function test_finish_unknown_request_returns_null(): void
     {
-        $obj    = new \stdClass();
+        $obj = new \stdClass;
         $result = $this->tracker->finishRequest($obj, microtime(true));
 
         $this->assertNull($result);
@@ -71,7 +71,7 @@ final class HttpTrackerTest extends TestCase
 
     public function test_finish_request_cleans_up_pending_entry(): void
     {
-        $obj = new \stdClass();
+        $obj = new \stdClass;
         $this->tracker->startRequest($obj, microtime(true));
         $this->tracker->finishRequest($obj, microtime(true));
 
@@ -82,8 +82,8 @@ final class HttpTrackerTest extends TestCase
 
     public function test_multiple_requests_tracked_independently(): void
     {
-        $obj1 = new \stdClass();
-        $obj2 = new \stdClass();
+        $obj1 = new \stdClass;
+        $obj2 = new \stdClass;
 
         $this->tracker->startRequest($obj1, 1000.0);
         $this->tracker->startRequest($obj2, 1000.5);
@@ -97,7 +97,7 @@ final class HttpTrackerTest extends TestCase
 
     public function test_duration_computed_in_milliseconds(): void
     {
-        $obj = new \stdClass();
+        $obj = new \stdClass;
         $this->tracker->startRequest($obj, 1000.000);
         $result = $this->tracker->finishRequest($obj, 1000.123);
 
@@ -106,7 +106,7 @@ final class HttpTrackerTest extends TestCase
 
     public function test_zero_duration_when_start_equals_end(): void
     {
-        $obj  = new \stdClass();
+        $obj = new \stdClass;
         $time = microtime(true);
         $this->tracker->startRequest($obj, $time);
         $result = $this->tracker->finishRequest($obj, $time);

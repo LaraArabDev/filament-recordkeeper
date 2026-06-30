@@ -13,7 +13,6 @@ class ViewAudit extends ViewRecord
 {
     protected static string $resource = AuditResource::class;
 
-    /** @return array */
     protected function getHeaderActions(): array
     {
         return [
@@ -23,8 +22,8 @@ class ViewAudit extends ViewRecord
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalDescription(fn () => view('recordkeeper::rollback-preview', [
-                    'modified'  => $this->getRecord()->getModified(),
-                    'event'     => $this->getRecord()->event,
+                    'modified' => $this->getRecord()->getModified(),
+                    'event' => $this->getRecord()->event,
                     'createdAt' => $this->getRecord()->created_at?->diffForHumans(),
                 ]))
                 ->visible(fn () => $this->getRecord() instanceof Audit

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Events\ConnectionFailed;
+use Illuminate\Http\Client\Events\RequestSending;
+use Illuminate\Http\Client\Events\ResponseReceived;
 use Illuminate\Support\Facades\Queue;
 use LaraArabDev\Recordkeeper\Jobs\WriteHttpRequest;
 use LaraArabDev\Recordkeeper\Models\AuditHttpRequest;
@@ -20,12 +26,12 @@ final class WriteHttpRequestJobTest extends TestCase
     public function test_handle_creates_audit_http_request(): void
     {
         $job = new WriteHttpRequest([
-            'method'      => 'POST',
-            'url'         => 'https://api.stripe.com/v1/charges',
+            'method' => 'POST',
+            'url' => 'https://api.stripe.com/v1/charges',
             'status_code' => 201,
             'duration_ms' => 245,
-            'failed'      => false,
-            'created_at'  => now(),
+            'failed' => false,
+            'created_at' => now(),
         ]);
 
         $job->handle();
@@ -43,11 +49,11 @@ final class WriteHttpRequestJobTest extends TestCase
     public function test_handle_stores_null_audit_id_when_not_provided(): void
     {
         $job = new WriteHttpRequest([
-            'method'      => 'GET',
-            'url'         => 'https://api.example.com/data',
+            'method' => 'GET',
+            'url' => 'https://api.example.com/data',
             'status_code' => 200,
-            'failed'      => false,
-            'created_at'  => now(),
+            'failed' => false,
+            'created_at' => now(),
         ]);
 
         $job->handle();
@@ -58,12 +64,12 @@ final class WriteHttpRequestJobTest extends TestCase
     public function test_handle_stores_failed_connection(): void
     {
         $job = new WriteHttpRequest([
-            'method'      => 'GET',
-            'url'         => 'https://unreachable.example.com',
+            'method' => 'GET',
+            'url' => 'https://unreachable.example.com',
             'status_code' => null,
             'duration_ms' => null,
-            'failed'      => true,
-            'created_at'  => now(),
+            'failed' => true,
+            'created_at' => now(),
         ]);
 
         $job->handle();
@@ -78,14 +84,14 @@ final class WriteHttpRequestJobTest extends TestCase
         Queue::fake();
         config([
             'recordkeeper.http.enabled' => true,
-            'recordkeeper.http.queue'   => true,
+            'recordkeeper.http.queue' => true,
         ]);
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
-        event(new \Illuminate\Http\Client\Events\RequestSending($request));
-        event(new \Illuminate\Http\Client\Events\ResponseReceived($request, $response));
+        event(new RequestSending($request));
+        event(new ResponseReceived($request, $response));
 
         Queue::assertPushed(WriteHttpRequest::class);
         $this->assertSame(0, AuditHttpRequest::count());
@@ -96,14 +102,14 @@ final class WriteHttpRequestJobTest extends TestCase
         Queue::fake();
         config([
             'recordkeeper.http.enabled' => true,
-            'recordkeeper.http.queue'   => false,
+            'recordkeeper.http.queue' => false,
         ]);
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
 
-        event(new \Illuminate\Http\Client\Events\RequestSending($request));
-        event(new \Illuminate\Http\Client\Events\ResponseReceived($request, $response));
+        event(new RequestSending($request));
+        event(new ResponseReceived($request, $response));
 
         Queue::assertNothingPushed();
         $this->assertSame(1, AuditHttpRequest::count());
@@ -114,14 +120,14 @@ final class WriteHttpRequestJobTest extends TestCase
         Queue::fake();
         config([
             'recordkeeper.http.enabled' => true,
-            'recordkeeper.http.queue'   => true,
+            'recordkeeper.http.queue' => true,
         ]);
 
-        $request   = $this->makeRequest('GET', 'https://api.example.com');
-        $exception = new \Illuminate\Http\Client\ConnectionException('refused');
+        $request = $this->makeRequest('GET', 'https://api.example.com');
+        $exception = new ConnectionException('refused');
 
-        event(new \Illuminate\Http\Client\Events\RequestSending($request));
-        event(new \Illuminate\Http\Client\Events\ConnectionFailed($request, $exception));
+        event(new RequestSending($request));
+        event(new ConnectionFailed($request, $exception));
 
         Queue::assertPushed(WriteHttpRequest::class);
         $this->assertSame(0, AuditHttpRequest::count());
@@ -131,30 +137,30 @@ final class WriteHttpRequestJobTest extends TestCase
     {
         Queue::fake();
         config([
-            'recordkeeper.http.enabled'    => true,
-            'recordkeeper.http.queue'      => true,
+            'recordkeeper.http.enabled' => true,
+            'recordkeeper.http.queue' => true,
             'recordkeeper.http.queue_name' => 'http-logs',
         ]);
 
-        $request  = $this->makeRequest('GET', 'https://api.stripe.com');
+        $request = $this->makeRequest('GET', 'https://api.stripe.com');
         $response = $this->makeResponse(200);
 
-        event(new \Illuminate\Http\Client\Events\RequestSending($request));
-        event(new \Illuminate\Http\Client\Events\ResponseReceived($request, $response));
+        event(new RequestSending($request));
+        event(new ResponseReceived($request, $response));
 
         Queue::assertPushedOn('http-logs', WriteHttpRequest::class);
     }
 
     private function makeRequest(string $method, string $url): \Illuminate\Http\Client\Request
     {
-        $psrRequest = new \GuzzleHttp\Psr7\Request($method, $url, ['Content-Type' => 'application/json']);
+        $psrRequest = new Request($method, $url, ['Content-Type' => 'application/json']);
 
         return new \Illuminate\Http\Client\Request($psrRequest);
     }
 
     private function makeResponse(int $status): \Illuminate\Http\Client\Response
     {
-        $psrResponse = new \GuzzleHttp\Psr7\Response($status, [], '{}');
+        $psrResponse = new Response($status, [], '{}');
 
         return new \Illuminate\Http\Client\Response($psrResponse);
     }

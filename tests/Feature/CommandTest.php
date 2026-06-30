@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Tests\Feature;
 
-use Illuminate\Support\Carbon;
 use LaraArabDev\Recordkeeper\Facades\Recordkeeper;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
@@ -28,7 +27,7 @@ class CommandTest extends TestCase
         Order::create(['status' => 'pending']);
 
         $this->artisan('recordkeeper:search', ['--json' => true, '--limit' => '10'])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_search_command_filter_by_event(): void
@@ -38,27 +37,27 @@ class CommandTest extends TestCase
         $order->update(['status' => 'c']);
 
         $this->artisan('recordkeeper:search', ['--event' => ['updated'], '--json' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_search_command_filter_by_guard(): void
     {
         Audit::create([
-            'event'          => 'route.get',
+            'event' => 'route.get',
             'auditable_type' => 'route',
-            'old_values'     => [],
-            'new_values'     => [],
-            'guard'          => 'api',
+            'old_values' => [],
+            'new_values' => [],
+            'guard' => 'api',
         ]);
 
         $this->artisan('recordkeeper:search', ['--guard' => 'api', '--json' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_search_command_returns_empty_json_array_when_no_results(): void
     {
         $this->artisan('recordkeeper:search', ['--json' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     // ------------------------------------------------------------------
@@ -71,7 +70,7 @@ class CommandTest extends TestCase
         $audit = Audit::first();
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_show_command_json_output(): void
@@ -80,13 +79,13 @@ class CommandTest extends TestCase
         $audit = Audit::first();
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id, '--json' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_show_command_fails_for_unknown_id(): void
     {
         $this->artisan('recordkeeper:show', ['id' => 99999])
-             ->assertExitCode(1);
+            ->assertExitCode(1);
     }
 
     // ------------------------------------------------------------------
@@ -101,8 +100,8 @@ class CommandTest extends TestCase
         $audit = Audit::where('event', 'updated')->first();
 
         $this->artisan('recordkeeper:rollback', [
-            'id'         => $audit->id,
-            '--dry-run'  => true,
+            'id' => $audit->id,
+            '--dry-run' => true,
         ])->assertExitCode(0);
 
         $this->assertSame('shipped', $order->fresh()->status);
@@ -116,7 +115,7 @@ class CommandTest extends TestCase
         $audit = Audit::where('event', 'updated')->first();
 
         $this->artisan('recordkeeper:rollback', [
-            'id'    => $audit->id,
+            'id' => $audit->id,
             '--yes' => true,
         ])->assertExitCode(0);
 
@@ -126,7 +125,7 @@ class CommandTest extends TestCase
     public function test_rollback_command_fails_for_missing_id(): void
     {
         $this->artisan('recordkeeper:rollback')
-             ->assertExitCode(1);
+            ->assertExitCode(1);
     }
 
     public function test_rollback_command_batch_mode(): void
@@ -137,7 +136,7 @@ class CommandTest extends TestCase
         });
 
         $this->artisan('recordkeeper:rollback', ['--batch' => 'cmd-batch', '--yes' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
 
         $this->assertDatabaseCount('orders', 0);
     }
@@ -153,7 +152,7 @@ class CommandTest extends TestCase
         $o->update(['status' => 'c']);
 
         $this->artisan('recordkeeper:stats')
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     public function test_stats_command_json_output(): void
@@ -161,7 +160,7 @@ class CommandTest extends TestCase
         Order::create(['status' => 'a']);
 
         $this->artisan('recordkeeper:stats', ['--json' => true])
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     // ------------------------------------------------------------------
@@ -171,7 +170,7 @@ class CommandTest extends TestCase
     public function test_models_command_runs_successfully(): void
     {
         $this->artisan('recordkeeper:models')
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     // ------------------------------------------------------------------
@@ -181,6 +180,6 @@ class CommandTest extends TestCase
     public function test_install_command_runs_without_errors(): void
     {
         $this->artisan('recordkeeper:install')
-             ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 }

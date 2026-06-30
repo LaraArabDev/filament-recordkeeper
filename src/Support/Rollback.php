@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Support;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use LaraArabDev\Recordkeeper\Contracts\Rollbacker;
-use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 
 final class Rollback implements Rollbacker
 {
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     public function revert(Audit $audit, bool $dryRun = false): mixed
     {
         if (! config('recordkeeper.rollback.enabled', true)) {
@@ -23,17 +19,12 @@ final class Rollback implements Rollbacker
         }
 
         return match (true) {
-            $audit->event === 'created'                                => $this->undoCreate($audit, $dryRun),
+            $audit->event === 'created' => $this->undoCreate($audit, $dryRun),
             in_array($audit->event, ['deleted', 'forceDeleted'], true) => $this->restore($audit, $dryRun),
-            default                                                    => $this->undoUpdate($audit, $dryRun),
+            default => $this->undoUpdate($audit, $dryRun),
         };
     }
 
-    /**
-     * @param  string  $batchId
-     * @param  bool    $dryRun
-     * @return array
-     */
     public function revertBatch(string $batchId, bool $dryRun = false): array
     {
         $audits = Audit::where('batch_id', $batchId)
@@ -51,18 +42,13 @@ final class Rollback implements Rollbacker
         });
     }
 
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     private function undoCreate(Audit $audit, bool $dryRun): mixed
     {
         if ($dryRun) {
             return [
-                'action'         => 'delete',
+                'action' => 'delete',
                 'auditable_type' => $audit->auditable_type,
-                'auditable_id'   => $audit->auditable_id,
+                'auditable_id' => $audit->auditable_id,
             ];
         }
 
@@ -75,11 +61,6 @@ final class Rollback implements Rollbacker
         return $model->forceDelete();
     }
 
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     private function restore(Audit $audit, bool $dryRun): mixed
     {
         if (! config('recordkeeper.rollback.restore_deleted', true)) {
@@ -95,7 +76,7 @@ final class Rollback implements Rollbacker
         $modelClass = $audit->auditable_type;
 
         $usesSoftDeletes = in_array(
-            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            SoftDeletes::class,
             class_uses_recursive($modelClass),
         );
 
@@ -111,11 +92,6 @@ final class Rollback implements Rollbacker
         return $modelClass::create(array_merge($oldValues, ['id' => $audit->auditable_id]));
     }
 
-    /**
-     * @param  Audit  $audit
-     * @param  bool   $dryRun
-     * @return mixed
-     */
     private function undoUpdate(Audit $audit, bool $dryRun): mixed
     {
         if ($dryRun) {
@@ -143,10 +119,6 @@ final class Rollback implements Rollbacker
         return $model;
     }
 
-    /**
-     * @param  array  $values
-     * @return array
-     */
     private function decryptValues(array $values): array
     {
         return array_map(function (mixed $value): mixed {

@@ -6,21 +6,6 @@ namespace LaraArabDev\Recordkeeper\DataObjects;
 
 final class AuditPayload
 {
-    /**
-     * @param  string           $event
-     * @param  string           $auditableType
-     * @param  int|string|null  $auditableId
-     * @param  array            $oldValues
-     * @param  array            $newValues
-     * @param  ?string          $userType
-     * @param  int|string|null  $userId
-     * @param  ?string          $url
-     * @param  ?string          $ipAddress
-     * @param  ?string          $userAgent
-     * @param  ?string          $tags
-     * @param  ?string          $batchId
-     * @param  array            $context
-     */
     public function __construct(
         public string $event,
         public string $auditableType,
@@ -37,23 +22,22 @@ final class AuditPayload
         public array $context = [],
     ) {}
 
-    /** @return array */
     public function toArray(): array
     {
         return [
-            'event'          => $this->event,
+            'event' => $this->event,
             'auditable_type' => $this->auditableType,
-            'auditable_id'   => $this->auditableId,
-            'old_values'     => $this->oldValues,
-            'new_values'     => $this->newValues,
-            'user_type'      => $this->userType,
-            'user_id'        => $this->userId,
-            'url'            => $this->url,
-            'ip_address'     => $this->ipAddress,
-            'user_agent'     => $this->userAgent,
-            'tags'           => $this->tags,
-            'batch_id'       => $this->batchId,
-            'context'        => $this->context,
+            'auditable_id' => $this->auditableId,
+            'old_values' => $this->oldValues,
+            'new_values' => $this->newValues,
+            'user_type' => $this->userType,
+            'user_id' => $this->userId,
+            'url' => $this->url,
+            'ip_address' => $this->ipAddress,
+            'user_agent' => $this->userAgent,
+            'tags' => $this->tags,
+            'batch_id' => $this->batchId,
+            'context' => $this->context,
         ];
     }
 }

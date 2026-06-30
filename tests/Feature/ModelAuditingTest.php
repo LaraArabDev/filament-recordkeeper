@@ -30,8 +30,8 @@ class ModelAuditingTest extends TestCase
         $this->assertDatabaseCount('audits', 1);
         $this->assertDatabaseHas('audits', [
             'auditable_type' => Order::class,
-            'auditable_id'   => $order->id,
-            'event'          => 'created',
+            'auditable_id' => $order->id,
+            'event' => 'created',
         ]);
     }
 
@@ -62,7 +62,7 @@ class ModelAuditingTest extends TestCase
         $order = Order::create(['status' => 'pending', 'total' => 50]);
         $order->update(['status' => 'active']); // total unchanged
 
-        $audit    = Audit::where('event', 'updated')->first();
+        $audit = Audit::where('event', 'updated')->first();
         $modified = $audit->getModified();
 
         $this->assertArrayHasKey('status', $modified);
@@ -77,7 +77,7 @@ class ModelAuditingTest extends TestCase
     {
         Order::create(['status' => 'ok', 'internal_notes' => 'private']);
 
-        $audit    = Audit::first();
+        $audit = Audit::first();
         $modified = $audit->getModified();
 
         $this->assertArrayNotHasKey('internal_notes', $modified);
@@ -89,7 +89,7 @@ class ModelAuditingTest extends TestCase
         $order->update(['internal_notes' => 'changed']);
 
         $updatedAudits = Audit::where('event', 'updated')->get();
-        $allModified   = $updatedAudits->flatMap(fn ($a) => array_keys($a->getModified()))->all();
+        $allModified = $updatedAudits->flatMap(fn ($a) => array_keys($a->getModified()))->all();
 
         $this->assertNotContains('internal_notes', $allModified);
     }
@@ -164,12 +164,12 @@ class ModelAuditingTest extends TestCase
 
     public function test_is_rollbackable_false_for_route_events(): void
     {
-        $routeAudit = new Audit();
+        $routeAudit = new Audit;
         $routeAudit->fill([
-            'event'          => 'route.get',
+            'event' => 'route.get',
             'auditable_type' => 'route',
-            'old_values'     => [],
-            'new_values'     => [],
+            'old_values' => [],
+            'new_values' => [],
         ]);
         $routeAudit->save();
 

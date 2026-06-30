@@ -25,16 +25,16 @@ use LaraArabDev\Recordkeeper\Listeners\RecordCommandAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordEventAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordJobAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordOutboundHttp;
+use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
 use LaraArabDev\Recordkeeper\Support\Rollback;
 
 class RecordkeeperServiceProvider extends ServiceProvider
 {
-    /** @return void */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/recordkeeper.php', 'recordkeeper');
+        $this->mergeConfigFrom(__DIR__.'/../config/recordkeeper.php', 'recordkeeper');
 
         $this->app->singleton(Recordkeeper::class);
         $this->app->singleton(HttpTracker::class);
@@ -47,7 +47,6 @@ class RecordkeeperServiceProvider extends ServiceProvider
         $this->app->bind(RevertBatch::class);
     }
 
-    /** @return void */
     public function boot(): void
     {
         $this->registerMigrations();
@@ -61,23 +60,21 @@ class RecordkeeperServiceProvider extends ServiceProvider
         }
     }
 
-    /** @return void */
     private function offerPublishing(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/recordkeeper.php' => config_path('recordkeeper.php'),
+            __DIR__.'/../config/recordkeeper.php' => config_path('recordkeeper.php'),
         ], 'recordkeeper-config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations' => database_path('migrations'),
+            __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'recordkeeper-migrations');
 
         $this->publishes([
-            __DIR__ . '/../resources/views' => resource_path('views/vendor/recordkeeper'),
+            __DIR__.'/../resources/views' => resource_path('views/vendor/recordkeeper'),
         ], 'recordkeeper-views');
     }
 
-    /** @return void */
     private function registerCommands(): void
     {
         $this->commands([
@@ -92,13 +89,11 @@ class RecordkeeperServiceProvider extends ServiceProvider
         ]);
     }
 
-    /** @return void */
     private function registerMigrations(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
-    /** @return void */
     private function registerMiddlewareAliases(): void
     {
         $router = $this->app['router'];
@@ -106,24 +101,22 @@ class RecordkeeperServiceProvider extends ServiceProvider
         $router->aliasMiddleware('audit.api', AuditApi::class);
     }
 
-    /** @return void */
     private function registerAuditModel(): void
     {
         $this->app['config']->set(
             'audit.implementation',
-            \LaraArabDev\Recordkeeper\Models\Audit::class
+            Audit::class
         );
 
         Relation::morphMap([
-            'route'   => \LaraArabDev\Recordkeeper\Models\Audit::class,
-            'system'  => \LaraArabDev\Recordkeeper\Models\Audit::class,
-            'job'     => \LaraArabDev\Recordkeeper\Models\Audit::class,
-            'command' => \LaraArabDev\Recordkeeper\Models\Audit::class,
-            'event'   => \LaraArabDev\Recordkeeper\Models\Audit::class,
+            'route' => Audit::class,
+            'system' => Audit::class,
+            'job' => Audit::class,
+            'command' => Audit::class,
+            'event' => Audit::class,
         ]);
     }
 
-    /** @return void */
     private function registerAuditListeners(): void
     {
         $this->app['events']->subscribe(RecordJobAudit::class);

@@ -58,8 +58,8 @@ class GuardFilteringTest extends TestCase
         $this->get('/web-endpoint');
         $this->get('/api-endpoint');
 
-        $webAudits = (new AuditQuery())->guard('web')->builder()->get();
-        $apiAudits = (new AuditQuery())->guard('api')->builder()->get();
+        $webAudits = (new AuditQuery)->guard('web')->builder()->get();
+        $apiAudits = (new AuditQuery)->guard('api')->builder()->get();
 
         $this->assertCount(1, $webAudits);
         $this->assertCount(1, $apiAudits);

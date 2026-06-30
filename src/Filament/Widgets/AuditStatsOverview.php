@@ -10,15 +10,14 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 
 class AuditStatsOverview extends StatsOverviewWidget
 {
-    /** @return array */
     protected function getStats(): array
     {
-        $total   = Audit::count();
+        $total = Audit::count();
         $created = Audit::where('event', 'created')->count();
         $updated = Audit::where('event', 'updated')->count();
         $deleted = Audit::whereIn('event', ['deleted', 'forceDeleted'])->count();
-        $routes  = Audit::where('event', 'like', 'route.%')->count();
-        $actors  = Audit::whereNotNull('user_id')->distinct('user_id')->count();
+        $routes = Audit::where('event', 'like', 'route.%')->count();
+        $actors = Audit::whereNotNull('user_id')->distinct('user_id')->count();
 
         return [
             Stat::make('Total Audits', number_format($total))
