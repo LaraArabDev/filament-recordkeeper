@@ -40,7 +40,8 @@
     "autoload-dev": {
         "psr-4": {
             "LaraArabDev\\Recordkeeper\\Tests\\": "tests/",
-            "LaraArabDev\\Recordkeeper\\Benchmarks\\": "benchmarks/"
+            "LaraArabDev\\Recordkeeper\\Benchmarks\\": "benchmarks/",
+            "Workbench\\App\\": "workbench/app/"
         }
     },
     "scripts": {
