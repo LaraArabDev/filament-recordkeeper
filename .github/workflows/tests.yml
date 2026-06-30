@@ -59,9 +59,9 @@ jobs:
       - name: Run tests with coverage (PHPUnit)
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage reports to Codecov
         if: matrix.php == '8.3' && matrix.laravel == '11.*' && matrix.filament == '^5.0'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
