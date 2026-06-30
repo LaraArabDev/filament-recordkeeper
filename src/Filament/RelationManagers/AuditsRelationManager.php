@@ -16,7 +16,7 @@ class AuditsRelationManager extends RelationManager
 
     protected static ?string $title = 'History';
 
-    protected static ?string $icon = 'heroicon-o-clock';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-clock';
 
     public function table(Table $table): Table
     {

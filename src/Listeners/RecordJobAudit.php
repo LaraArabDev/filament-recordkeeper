@@ -39,7 +39,7 @@ final class RecordJobAudit
             'job' => $jobClass,
             'connection' => $event->connectionName,
             'queue' => $event->queue ?? 'default',
-        ], $attr?->tags ?? []);
+        ], $attr !== null ? $attr->tags : []);
     }
 
     public function onProcessing(JobProcessing $event): void
@@ -56,9 +56,9 @@ final class RecordJobAudit
             'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
             'attempts' => $event->job->attempts(),
-        ], $attr?->tags ?? []);
+        ], $attr !== null ? $attr->tags : []);
 
-        if ($audit !== null && config('recordkeeper.http.enabled', false)) {
+        if (config('recordkeeper.http.enabled', false)) {
             app(HttpTracker::class)->setContext($audit->id);
         }
     }
@@ -81,7 +81,7 @@ final class RecordJobAudit
             'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
             'attempts' => $event->job->attempts(),
-        ], $attr?->tags ?? []);
+        ], $attr !== null ? $attr->tags : []);
     }
 
     public function onFailed(JobFailed $event): void
@@ -103,7 +103,7 @@ final class RecordJobAudit
             'queue' => $event->job->getQueue(),
             'attempts' => $event->job->attempts(),
             'exception' => $event->exception->getMessage(),
-        ], $attr?->tags ?? []);
+        ], $attr !== null ? $attr->tags : []);
     }
 
     private function shouldAudit(string $jobClass, ?AuditJob $attr): bool
@@ -120,7 +120,7 @@ final class RecordJobAudit
         return config('recordkeeper.jobs.enabled', false) || $attr !== null;
     }
 
-    private function write(string $eventName, string $jobClass, array $context, array $tags): ?Audit
+    private function write(string $eventName, string $jobClass, array $context, array $tags): Audit
     {
         $audit = new Audit;
         $audit->fill([
