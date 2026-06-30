@@ -9,6 +9,7 @@ use Illuminate\Support\ServiceProvider;
 use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Actions\RevertAudit;
 use LaraArabDev\Recordkeeper\Actions\RevertBatch;
+use LaraArabDev\Recordkeeper\Cache\AuditCache;
 use LaraArabDev\Recordkeeper\Console\InstallCommand;
 use LaraArabDev\Recordkeeper\Console\PruneCommand;
 use LaraArabDev\Recordkeeper\Console\RollbackCommand;
@@ -26,6 +27,7 @@ use LaraArabDev\Recordkeeper\Listeners\RecordEventAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordJobAudit;
 use LaraArabDev\Recordkeeper\Listeners\RecordOutboundHttp;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\Support\AuditDriverManager;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
 use LaraArabDev\Recordkeeper\Support\Rollback;
@@ -38,6 +40,14 @@ class RecordkeeperServiceProvider extends ServiceProvider
 
         $this->app->singleton(Recordkeeper::class);
         $this->app->singleton(HttpTracker::class);
+        $this->app->singleton(AuditDriverManager::class);
+
+        $this->app->singleton(AuditCache::class, function ($app) {
+            $store = $app['cache']->store(config('recordkeeper.cache.store'));
+            $ttl = (int) config('recordkeeper.cache.ttl', 300);
+
+            return new AuditCache($store, $ttl);
+        });
 
         $this->app->bind(Rollbacker::class, Rollback::class);
         $this->app->bind(AuditQueryContract::class, AuditQuery::class);

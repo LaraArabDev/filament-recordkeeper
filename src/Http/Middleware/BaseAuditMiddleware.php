@@ -7,14 +7,16 @@ namespace LaraArabDev\Recordkeeper\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Actions\RedactValues;
-use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class BaseAuditMiddleware
 {
     public function __construct(
         private readonly RedactValues $redactValues,
+        private readonly RecordAudit $recordAudit,
     ) {}
 
     abstract protected function guard(): string;
@@ -66,29 +68,26 @@ abstract class BaseAuditMiddleware
             $tags[] = $opts['tag'];
         }
 
-        $audit = new Audit;
-        $audit->fill([
-            'event' => 'route.'.strtolower($request->method()),
-            'auditable_type' => 'route',
-            'auditable_id' => null,
-            'old_values' => [],
-            'new_values' => $body,
-            'user_type' => $user ? $user::class : null,
-            'user_id' => $user?->getKey(),
-            'url' => $request->fullUrl(),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'tags' => implode(',', $tags),
-            'guard' => $this->guard(),
-            'batch_id' => null,
-            'context' => [
+        ($this->recordAudit)(new AuditPayload(
+            event: 'route.'.strtolower($request->method()),
+            auditableType: 'route',
+            auditableId: null,
+            oldValues: [],
+            newValues: $body,
+            userType: $user ? $user::class : null,
+            userId: $user?->getKey(),
+            url: $request->fullUrl(),
+            ipAddress: $request->ip(),
+            userAgent: $request->userAgent(),
+            tags: implode(',', $tags),
+            context: [
                 'route' => $request->route()?->getName() ?? $request->path(),
                 'method' => $request->method(),
                 'status' => $response->getStatusCode(),
                 'duration_ms' => $duration,
             ],
-        ]);
-        $audit->save();
+            guard: $this->guard(),
+        ));
     }
 
     protected function parseOptions(array $options): array

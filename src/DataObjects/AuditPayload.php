@@ -20,6 +20,7 @@ final class AuditPayload
         public ?string $tags = null,
         public ?string $batchId = null,
         public array $context = [],
+        public ?string $guard = null,
     ) {}
 
     public function toArray(): array
@@ -38,6 +39,7 @@ final class AuditPayload
             'tags' => $this->tags,
             'batch_id' => $this->batchId,
             'context' => $this->context,
+            'guard' => $this->guard,
         ];
     }
 }

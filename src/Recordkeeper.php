@@ -6,6 +6,7 @@ namespace LaraArabDev\Recordkeeper;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Actions\RevertAudit;
 use LaraArabDev\Recordkeeper\Actions\RevertBatch;
 use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
@@ -90,9 +91,7 @@ class Recordkeeper
             context: array_merge($this->context, $context),
         );
 
-        $audit = new Audit;
-        $audit->fill($payload->toArray());
-        $audit->save();
+        $audit = app(RecordAudit::class)($payload);
 
         ChangeRecorded::dispatch($audit);
 

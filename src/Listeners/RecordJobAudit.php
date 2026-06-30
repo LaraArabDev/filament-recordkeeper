@@ -9,12 +9,16 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
+use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Attributes\AuditJob;
+use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
 
 final class RecordJobAudit
 {
+    public function __construct(private readonly RecordAudit $recordAudit) {}
+
     /** @return array<string, string> */
     public function subscribe(Dispatcher $events): array
     {
@@ -35,7 +39,7 @@ final class RecordJobAudit
             return;
         }
 
-        $this->write('job.queued', $jobClass, [
+        $this->write('job.queued', [
             'job' => $jobClass,
             'connection' => $event->connectionName,
             'queue' => $event->queue ?? 'default',
@@ -51,7 +55,7 @@ final class RecordJobAudit
             return;
         }
 
-        $audit = $this->write('job.processing', $jobClass, [
+        $audit = $this->write('job.processing', [
             'job' => $jobClass,
             'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
@@ -76,7 +80,7 @@ final class RecordJobAudit
             return;
         }
 
-        $this->write('job.processed', $jobClass, [
+        $this->write('job.processed', [
             'job' => $jobClass,
             'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
@@ -97,7 +101,7 @@ final class RecordJobAudit
             return;
         }
 
-        $this->write('job.failed', $jobClass, [
+        $this->write('job.failed', [
             'job' => $jobClass,
             'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
@@ -120,23 +124,17 @@ final class RecordJobAudit
         return config('recordkeeper.jobs.enabled', false) || $attr !== null;
     }
 
-    private function write(string $eventName, string $jobClass, array $context, array $tags): Audit
+    private function write(string $eventName, array $context, array $tags): Audit
     {
-        $audit = new Audit;
-        $audit->fill([
-            'event' => $eventName,
-            'auditable_type' => 'job',
-            'auditable_id' => null,
-            'old_values' => [],
-            'new_values' => [],
-            'user_type' => null,
-            'user_id' => null,
-            'tags' => implode(',', $tags),
-            'context' => $context,
-        ]);
-        $audit->save();
-
-        return $audit;
+        return ($this->recordAudit)(new AuditPayload(
+            event: $eventName,
+            auditableType: 'job',
+            auditableId: null,
+            oldValues: [],
+            newValues: [],
+            tags: implode(',', $tags),
+            context: $context,
+        ));
     }
 
     private function resolveJobClass(mixed $job): string
