@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use LaraArabDev\Recordkeeper\Http\Middleware\AuditRoute;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class MiddlewareTest extends TestCase
 {
@@ -21,7 +22,8 @@ class MiddlewareTest extends TestCase
         Route::middleware([AuditRoute::class])->get('/test-disabled', fn () => response()->json(['ok' => true]));
     }
 
-    public function test_tag_option_is_stored_in_audit(): void
+    #[Test]
+    public function tag_option_is_stored_in_audit(): void
     {
         $this->get('/test-tag')->assertOk();
 
@@ -30,7 +32,8 @@ class MiddlewareTest extends TestCase
         $this->assertStringContainsString('payments', $audit->tags ?? '');
     }
 
-    public function test_body_and_tag_options_combined(): void
+    #[Test]
+    public function body_and_tag_options_combined(): void
     {
         $this->post('/test-body-tag', ['item' => 'widget'])->assertOk();
 
@@ -40,7 +43,8 @@ class MiddlewareTest extends TestCase
         $this->assertStringContainsString('checkout', $audit->tags ?? '');
     }
 
-    public function test_sample_full_records_every_request(): void
+    #[Test]
+    public function sample_full_records_every_request(): void
     {
         $this->get('/test-sample-full')->assertOk();
         $this->get('/test-sample-full')->assertOk();
@@ -48,7 +52,8 @@ class MiddlewareTest extends TestCase
         $this->assertSame(2, Audit::where('event', 'route.get')->count());
     }
 
-    public function test_disabled_kill_switch_skips_audit(): void
+    #[Test]
+    public function disabled_kill_switch_skips_audit(): void
     {
         config(['recordkeeper.enabled' => false]);
 
@@ -57,7 +62,8 @@ class MiddlewareTest extends TestCase
         $this->assertDatabaseCount('audits', 0);
     }
 
-    public function test_parse_options_returns_defaults_for_empty_options(): void
+    #[Test]
+    public function parse_options_returns_defaults_for_empty_options(): void
     {
         $middleware = app(AuditRoute::class);
         $parseOptions = new \ReflectionMethod($middleware, 'parseOptions');
@@ -71,7 +77,8 @@ class MiddlewareTest extends TestCase
         $this->assertSame(1.0, $result['sample']);
     }
 
-    public function test_parse_options_parses_all_keys(): void
+    #[Test]
+    public function parse_options_parses_all_keys(): void
     {
         $middleware = app(AuditRoute::class);
         $parseOptions = new \ReflectionMethod($middleware, 'parseOptions');
@@ -85,7 +92,8 @@ class MiddlewareTest extends TestCase
         $this->assertSame(0.5, $result['sample']);
     }
 
-    public function test_parse_options_ignores_options_without_equals(): void
+    #[Test]
+    public function parse_options_ignores_options_without_equals(): void
     {
         $middleware = app(AuditRoute::class);
         $parseOptions = new \ReflectionMethod($middleware, 'parseOptions');

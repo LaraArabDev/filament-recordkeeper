@@ -22,6 +22,6 @@ class WorkbenchServiceProvider extends ServiceProvider
 
         Route::get('/', fn () => response()->json(['status' => 'ok']));
 
-        Route::prefix('api')->group(workbench_path('routes/api.php'));
+        Route::prefix('api')->group(__DIR__.'/../../routes/api.php');
     }
 }

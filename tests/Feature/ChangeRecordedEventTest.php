@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Events\ChangeRecorded;
 use LaraArabDev\Recordkeeper\Facades\Recordkeeper;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ChangeRecordedEventTest extends TestCase
 {
@@ -18,7 +19,8 @@ class ChangeRecordedEventTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_change_recorded_event_is_dispatched_on_log(): void
+    #[Test]
+    public function change_recorded_event_is_dispatched_on_log(): void
     {
         Event::fake([ChangeRecorded::class]);
 
@@ -29,7 +31,8 @@ class ChangeRecordedEventTest extends TestCase
         });
     }
 
-    public function test_change_recorded_event_carries_audit_instance(): void
+    #[Test]
+    public function change_recorded_event_carries_audit_instance(): void
     {
         Event::fake([ChangeRecorded::class]);
 

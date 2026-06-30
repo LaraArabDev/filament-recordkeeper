@@ -14,6 +14,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Models\AuditHttpRequest;
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 final class HttpOutboundTrackingTest extends TestCase
 {
@@ -23,7 +24,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $app['config']->set('recordkeeper.http.enabled', true);
     }
 
-    public function test_outbound_http_is_recorded_on_response(): void
+    #[Test]
+    public function outbound_http_is_recorded_on_response(): void
     {
         $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
         $response = $this->makeResponse(200);
@@ -40,7 +42,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertFalse($record->failed);
     }
 
-    public function test_duration_is_recorded(): void
+    #[Test]
+    public function duration_is_recorded(): void
     {
         $request = $this->makeRequest('POST', 'https://api.hubspot.com/crm/v3/objects/contacts');
         $response = $this->makeResponse(201);
@@ -55,7 +58,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertGreaterThan(0, $record->duration_ms);
     }
 
-    public function test_failed_connection_is_recorded(): void
+    #[Test]
+    public function failed_connection_is_recorded(): void
     {
         $request = $this->makeRequest('GET', 'https://unavailable.example.com/api');
         $exception = new ConnectionException('Connection refused');
@@ -70,7 +74,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNull($record->status_code);
     }
 
-    public function test_excluded_host_is_not_recorded(): void
+    #[Test]
+    public function excluded_host_is_not_recorded(): void
     {
         config(['recordkeeper.http.exclude_hosts' => ['internal.example.com']]);
 
@@ -83,7 +88,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame(0, AuditHttpRequest::count());
     }
 
-    public function test_disabled_http_tracking_records_nothing(): void
+    #[Test]
+    public function disabled_http_tracking_records_nothing(): void
     {
         config(['recordkeeper.http.enabled' => false]);
 
@@ -96,7 +102,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame(0, AuditHttpRequest::count());
     }
 
-    public function test_request_linked_to_job_audit(): void
+    #[Test]
+    public function request_linked_to_job_audit(): void
     {
         $audit = Audit::create([
             'event' => 'job.processing',
@@ -120,7 +127,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame($audit->id, $record->audit_id);
     }
 
-    public function test_context_less_http_hit_has_null_audit_id(): void
+    #[Test]
+    public function context_less_http_hit_has_null_audit_id(): void
     {
         app(HttpTracker::class)->clearContext();
 
@@ -135,7 +143,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNull($record->audit_id);
     }
 
-    public function test_response_body_captured_when_enabled(): void
+    #[Test]
+    public function response_body_captured_when_enabled(): void
     {
         config([
             'recordkeeper.http.capture_body' => true,
@@ -154,7 +163,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame(50, strlen($record->response_body));
     }
 
-    public function test_headers_captured_when_enabled(): void
+    #[Test]
+    public function headers_captured_when_enabled(): void
     {
         config(['recordkeeper.http.capture_headers' => true]);
 
@@ -169,7 +179,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNotNull($record->request_headers);
     }
 
-    public function test_audit_has_many_http_requests(): void
+    #[Test]
+    public function audit_has_many_http_requests(): void
     {
         $audit = Audit::create([
             'event' => 'job.processing',
@@ -192,7 +203,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame(2, $audit->httpRequests()->count());
     }
 
-    public function test_put_method_stored_correctly(): void
+    #[Test]
+    public function put_method_stored_correctly(): void
     {
         $request = $this->makeRequest('PUT', 'https://api.example.com/users/1');
         $response = $this->makeResponse(200);
@@ -203,7 +215,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame('PUT', AuditHttpRequest::first()->method);
     }
 
-    public function test_delete_method_stored_correctly(): void
+    #[Test]
+    public function delete_method_stored_correctly(): void
     {
         $request = $this->makeRequest('DELETE', 'https://api.example.com/users/1');
         $response = $this->makeResponse(204);
@@ -242,7 +255,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertFalse($record->failed);
     }
 
-    public function test_response_body_not_captured_by_default(): void
+    #[Test]
+    public function response_body_not_captured_by_default(): void
     {
         $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200, '{"secret":"value"}');
@@ -253,7 +267,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNull(AuditHttpRequest::first()->response_body);
     }
 
-    public function test_request_headers_not_captured_by_default(): void
+    #[Test]
+    public function request_headers_not_captured_by_default(): void
     {
         $request = $this->makeRequest('GET', 'https://api.example.com/data', ['Authorization' => 'Bearer token']);
         $response = $this->makeResponse(200);
@@ -265,7 +280,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNull(AuditHttpRequest::first()->response_headers);
     }
 
-    public function test_body_within_limit_stored_in_full(): void
+    #[Test]
+    public function body_within_limit_stored_in_full(): void
     {
         config([
             'recordkeeper.http.capture_body' => true,
@@ -282,7 +298,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame($body, AuditHttpRequest::first()->response_body);
     }
 
-    public function test_excluded_host_also_blocked_on_failed_connection(): void
+    #[Test]
+    public function excluded_host_also_blocked_on_failed_connection(): void
     {
         config(['recordkeeper.http.exclude_hosts' => ['blocked.example.com']]);
 
@@ -295,7 +312,8 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertSame(0, AuditHttpRequest::count());
     }
 
-    public function test_created_at_timestamp_is_stored(): void
+    #[Test]
+    public function created_at_timestamp_is_stored(): void
     {
         $request = $this->makeRequest('GET', 'https://api.example.com/data');
         $response = $this->makeResponse(200);

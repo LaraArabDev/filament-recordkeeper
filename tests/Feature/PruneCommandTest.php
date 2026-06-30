@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PruneCommandTest extends TestCase
 {
@@ -18,7 +19,8 @@ class PruneCommandTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_prunes_entries_past_retention(): void
+    #[Test]
+    public function prunes_entries_past_retention(): void
     {
         // Create an old audit record
         Order::create(['status' => 'old']);
@@ -30,7 +32,8 @@ class PruneCommandTest extends TestCase
         $this->assertDatabaseCount('audits', 0);
     }
 
-    public function test_keeps_entries_inside_retention(): void
+    #[Test]
+    public function keeps_entries_inside_retention(): void
     {
         // Create a recent audit record
         Order::create(['status' => 'new']);

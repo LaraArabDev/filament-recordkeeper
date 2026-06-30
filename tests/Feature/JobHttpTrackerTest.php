@@ -17,6 +17,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Models\AuditHttpRequest;
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 #[AuditJob]
 class TrackedJob {}
@@ -38,7 +39,8 @@ final class JobHttpTrackerTest extends TestCase
         app(HttpTracker::class)->clearContext();
     }
 
-    public function test_tracker_context_set_to_processing_audit_id(): void
+    #[Test]
+    public function tracker_context_set_to_processing_audit_id(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -49,7 +51,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertSame($processingAudit->id, app(HttpTracker::class)->currentAuditId());
     }
 
-    public function test_tracker_context_cleared_after_job_processed(): void
+    #[Test]
+    public function tracker_context_cleared_after_job_processed(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -58,7 +61,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNull(app(HttpTracker::class)->currentAuditId());
     }
 
-    public function test_tracker_context_cleared_after_job_failed(): void
+    #[Test]
+    public function tracker_context_cleared_after_job_failed(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -67,7 +71,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNull(app(HttpTracker::class)->currentAuditId());
     }
 
-    public function test_tracker_context_cleared_even_for_unaudited_jobs(): void
+    #[Test]
+    public function tracker_context_cleared_even_for_unaudited_jobs(): void
     {
         app(HttpTracker::class)->setContext(999);
 
@@ -79,7 +84,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNull(app(HttpTracker::class)->currentAuditId());
     }
 
-    public function test_http_context_not_set_when_http_disabled(): void
+    #[Test]
+    public function http_context_not_set_when_http_disabled(): void
     {
         config(['recordkeeper.http.enabled' => false]);
 
@@ -89,7 +95,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNull(app(HttpTracker::class)->currentAuditId());
     }
 
-    public function test_http_requests_linked_to_job_processing_audit(): void
+    #[Test]
+    public function http_requests_linked_to_job_processing_audit(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -110,7 +117,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertSame($processingAudit->id, $httpRecord->audit_id);
     }
 
-    public function test_multiple_http_calls_all_linked_to_same_job(): void
+    #[Test]
+    public function multiple_http_calls_all_linked_to_same_job(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -129,7 +137,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertSame(3, $processingAudit->httpRequests()->count());
     }
 
-    public function test_http_requests_after_job_completes_have_null_audit_id(): void
+    #[Test]
+    public function http_requests_after_job_completes_have_null_audit_id(): void
     {
         $job = $this->mockJob(TrackedJob::class);
         event(new JobProcessing('sync', $job));
@@ -144,7 +153,8 @@ final class JobHttpTrackerTest extends TestCase
         $this->assertNull(AuditHttpRequest::first()->audit_id);
     }
 
-    public function test_second_job_gets_its_own_context(): void
+    #[Test]
+    public function second_job_gets_its_own_context(): void
     {
         $job1 = $this->mockJob(TrackedJob::class);
         $job2 = $this->mockJob(TrackedJob::class);

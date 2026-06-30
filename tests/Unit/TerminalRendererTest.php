@@ -8,6 +8,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\TerminalRenderer;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class TerminalRendererTest extends TestCase
 {
@@ -30,7 +31,8 @@ class TerminalRendererTest extends TestCase
         return $audit;
     }
 
-    public function test_table_outputs_empty_message_when_no_rows(): void
+    #[Test]
+    public function table_outputs_empty_message_when_no_rows(): void
     {
         ob_start();
         TerminalRenderer::table(['ID', 'Event'], []);
@@ -39,7 +41,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('No results found.', $output);
     }
 
-    public function test_table_renders_headers_and_data_rows(): void
+    #[Test]
+    public function table_renders_headers_and_data_rows(): void
     {
         ob_start();
         TerminalRenderer::table(['ID', 'Event'], [
@@ -56,7 +59,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('|', $output);
     }
 
-    public function test_table_pads_all_rows_to_same_width(): void
+    #[Test]
+    public function table_pads_all_rows_to_same_width(): void
     {
         ob_start();
         TerminalRenderer::table(['H'], [
@@ -74,7 +78,8 @@ class TerminalRendererTest extends TestCase
         }
     }
 
-    public function test_json_outputs_pretty_printed_json(): void
+    #[Test]
+    public function json_outputs_pretty_printed_json(): void
     {
         ob_start();
         TerminalRenderer::json(['key' => 'value', 'num' => 42]);
@@ -86,7 +91,8 @@ class TerminalRendererTest extends TestCase
         $this->assertGreaterThan(1, substr_count($output, "\n"));
     }
 
-    public function test_ndjson_outputs_one_object_per_line(): void
+    #[Test]
+    public function ndjson_outputs_one_object_per_line(): void
     {
         ob_start();
         TerminalRenderer::ndjson([['a' => 1], ['b' => 2]]);
@@ -98,7 +104,8 @@ class TerminalRendererTest extends TestCase
         $this->assertSame(['b' => 2], json_decode($lines[1], true));
     }
 
-    public function test_csv_outputs_header_and_data_rows(): void
+    #[Test]
+    public function csv_outputs_header_and_data_rows(): void
     {
         ob_start();
         TerminalRenderer::csv(['ID', 'Event'], [['id' => 1, 'event' => 'created']]);
@@ -109,7 +116,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('created', $output);
     }
 
-    public function test_diff_outputs_no_changes_label_when_nothing_modified(): void
+    #[Test]
+    public function diff_outputs_no_changes_label_when_nothing_modified(): void
     {
         $audit = $this->savedAudit(['old_values' => [], 'new_values' => []]);
 
@@ -120,7 +128,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('no attribute changes', $output);
     }
 
-    public function test_diff_shows_old_and_new_values_per_attribute(): void
+    #[Test]
+    public function diff_shows_old_and_new_values_per_attribute(): void
     {
         $audit = $this->savedAudit([
             'old_values' => ['status' => 'pending'],
@@ -137,7 +146,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString("\033[", $output);
     }
 
-    public function test_diff_formats_null_old_value_as_null_label(): void
+    #[Test]
+    public function diff_formats_null_old_value_as_null_label(): void
     {
         $audit = $this->savedAudit([
             'old_values' => ['field' => null],
@@ -151,7 +161,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('(null)', $output);
     }
 
-    public function test_diff_formats_redacted_marker_as_redacted_label(): void
+    #[Test]
+    public function diff_formats_redacted_marker_as_redacted_label(): void
     {
         $audit = $this->savedAudit([
             'old_values' => ['code' => 'REAL'],
@@ -165,7 +176,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('(redacted/encrypted)', $output);
     }
 
-    public function test_diff_formats_encrypted_prefix_as_redacted_label(): void
+    #[Test]
+    public function diff_formats_encrypted_prefix_as_redacted_label(): void
     {
         $audit = $this->savedAudit([
             'old_values' => ['nid' => 'PLAIN'],
@@ -179,7 +191,8 @@ class TerminalRendererTest extends TestCase
         $this->assertStringContainsString('(redacted/encrypted)', $output);
     }
 
-    public function test_audit_to_row_maps_system_actor_and_subject(): void
+    #[Test]
+    public function audit_to_row_maps_system_actor_and_subject(): void
     {
         $audit = $this->savedAudit([
             'auditable_id' => 5,
@@ -199,7 +212,8 @@ class TerminalRendererTest extends TestCase
         $this->assertSame('', $row['batch']);
     }
 
-    public function test_audit_to_row_maps_batch_and_changed_keys(): void
+    #[Test]
+    public function audit_to_row_maps_batch_and_changed_keys(): void
     {
         $audit = $this->savedAudit([
             'event' => 'updated',

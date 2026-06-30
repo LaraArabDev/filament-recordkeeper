@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class BatchTest extends TestCase
 {
@@ -18,7 +19,8 @@ class BatchTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_batch_shares_batch_id(): void
+    #[Test]
+    public function batch_shares_batch_id(): void
     {
         Recordkeeper::batch('import-001', function (): void {
             Order::create(['status' => 'pending']);
@@ -29,7 +31,8 @@ class BatchTest extends TestCase
         $this->assertCount(2, $audits);
     }
 
-    public function test_facade_log_records_arbitrary_event(): void
+    #[Test]
+    public function facade_log_records_arbitrary_event(): void
     {
         $audit = Recordkeeper::log('app.maintenance', null, ['message' => 'backup started']);
 
@@ -37,7 +40,8 @@ class BatchTest extends TestCase
         $this->assertSame('backup started', $audit->new_values['message'] ?? null);
     }
 
-    public function test_kill_switch_disables_all_auditing(): void
+    #[Test]
+    public function kill_switch_disables_all_auditing(): void
     {
         config(['recordkeeper.enabled' => false]);
 

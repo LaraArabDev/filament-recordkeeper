@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PerformanceTest extends TestCase
 {
@@ -19,7 +20,8 @@ class PerformanceTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_attribute_resolver_caches_result_per_class(): void
+    #[Test]
+    public function attribute_resolver_caches_result_per_class(): void
     {
         $reflectionCount = 0;
 
@@ -32,7 +34,8 @@ class PerformanceTest extends TestCase
         $this->assertSame($config1, $config2, 'AttributeResolver must return the same cached AuditConfig instance');
     }
 
-    public function test_attribute_resolver_clear_cache_forces_re_resolution(): void
+    #[Test]
+    public function attribute_resolver_clear_cache_forces_re_resolution(): void
     {
         $config1 = AttributeResolver::resolve(Order::class);
         AttributeResolver::clearCache();
@@ -44,7 +47,8 @@ class PerformanceTest extends TestCase
         $this->assertSame($config1->auditEvents, $config2->auditEvents);
     }
 
-    public function test_audit_list_query_has_no_n_plus_one(): void
+    #[Test]
+    public function audit_list_query_has_no_n_plus_one(): void
     {
         // Create several audits
         Order::create(['status' => 'a']);
@@ -67,7 +71,8 @@ class PerformanceTest extends TestCase
         $this->assertLessThanOrEqual(2, $queryCount, 'List query should use at most 2 queries (main + eager load)');
     }
 
-    public function test_multiple_model_resolutions_are_constant_time(): void
+    #[Test]
+    public function multiple_model_resolutions_are_constant_time(): void
     {
         // Resolve the same class 100 times — only the first should do reflection
         $start = microtime(true);
@@ -80,7 +85,8 @@ class PerformanceTest extends TestCase
         $this->assertLessThan(0.01, $elapsed, '100 cached AttributeResolver resolutions should complete in < 10ms');
     }
 
-    public function test_guard_filter_uses_indexed_column_not_json(): void
+    #[Test]
+    public function guard_filter_uses_indexed_column_not_json(): void
     {
         // Insert some route audits
         for ($i = 0; $i < 5; $i++) {

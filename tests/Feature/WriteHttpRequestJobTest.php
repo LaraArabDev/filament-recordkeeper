@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Queue;
 use LaraArabDev\Recordkeeper\Jobs\WriteHttpRequest;
 use LaraArabDev\Recordkeeper\Models\AuditHttpRequest;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 final class WriteHttpRequestJobTest extends TestCase
 {
@@ -23,7 +24,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $app['config']->set('recordkeeper.http.enabled', true);
     }
 
-    public function test_handle_creates_audit_http_request(): void
+    #[Test]
+    public function handle_creates_audit_http_request(): void
     {
         $job = new WriteHttpRequest([
             'method' => 'POST',
@@ -46,7 +48,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertFalse($record->failed);
     }
 
-    public function test_handle_stores_null_audit_id_when_not_provided(): void
+    #[Test]
+    public function handle_stores_null_audit_id_when_not_provided(): void
     {
         $job = new WriteHttpRequest([
             'method' => 'GET',
@@ -61,7 +64,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertNull(AuditHttpRequest::first()->audit_id);
     }
 
-    public function test_handle_stores_failed_connection(): void
+    #[Test]
+    public function handle_stores_failed_connection(): void
     {
         $job = new WriteHttpRequest([
             'method' => 'GET',
@@ -79,7 +83,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertNull($record->status_code);
     }
 
-    public function test_queue_dispatched_when_http_queue_enabled(): void
+    #[Test]
+    public function queue_dispatched_when_http_queue_enabled(): void
     {
         Queue::fake();
         config([
@@ -97,7 +102,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertSame(0, AuditHttpRequest::count());
     }
 
-    public function test_no_job_dispatched_when_http_queue_disabled(): void
+    #[Test]
+    public function no_job_dispatched_when_http_queue_disabled(): void
     {
         Queue::fake();
         config([
@@ -115,7 +121,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertSame(1, AuditHttpRequest::count());
     }
 
-    public function test_queue_dispatched_on_failed_connection_when_enabled(): void
+    #[Test]
+    public function queue_dispatched_on_failed_connection_when_enabled(): void
     {
         Queue::fake();
         config([
@@ -133,7 +140,8 @@ final class WriteHttpRequestJobTest extends TestCase
         $this->assertSame(0, AuditHttpRequest::count());
     }
 
-    public function test_queue_uses_custom_queue_name(): void
+    #[Test]
+    public function queue_uses_custom_queue_name(): void
     {
         Queue::fake();
         config([

@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Modifiers\RedactAttribute;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class AttributeResolverTest extends TestCase
 {
@@ -23,7 +24,8 @@ class AttributeResolverTest extends TestCase
     // Events
     // ------------------------------------------------------------------
 
-    public function test_reads_events_from_auditable_attribute(): void
+    #[Test]
+    public function reads_events_from_auditable_attribute(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
@@ -34,7 +36,8 @@ class AttributeResolverTest extends TestCase
     // Modifiers from explicit attributes
     // ------------------------------------------------------------------
 
-    public function test_maps_redact_attribute_to_redact_modifier(): void
+    #[Test]
+    public function maps_redact_attribute_to_redact_modifier(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
@@ -42,7 +45,8 @@ class AttributeResolverTest extends TestCase
         $this->assertSame(RedactAttribute::class, $config->attributeModifiers['discount_code']);
     }
 
-    public function test_maps_encrypt_attribute_to_encrypt_modifier(): void
+    #[Test]
+    public function maps_encrypt_attribute_to_encrypt_modifier(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
@@ -54,14 +58,16 @@ class AttributeResolverTest extends TestCase
     // Excludes
     // ------------------------------------------------------------------
 
-    public function test_audit_exclude_attribute_is_in_exclude_list(): void
+    #[Test]
+    public function audit_exclude_attribute_is_in_exclude_list(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
         $this->assertContains('internal_notes', $config->auditExclude);
     }
 
-    public function test_merges_global_excludes_from_config(): void
+    #[Test]
+    public function merges_global_excludes_from_config(): void
     {
         config(['recordkeeper.privacy.global_exclude' => ['remember_token', 'two_factor_secret']]);
         AttributeResolver::clearCache();
@@ -72,7 +78,8 @@ class AttributeResolverTest extends TestCase
         $this->assertContains('two_factor_secret', $config->auditExclude);
     }
 
-    public function test_excludes_are_unique_no_duplicates(): void
+    #[Test]
+    public function excludes_are_unique_no_duplicates(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
@@ -83,7 +90,8 @@ class AttributeResolverTest extends TestCase
     // Pattern auto-matching
     // ------------------------------------------------------------------
 
-    public function test_auto_maps_password_pattern_to_redactor(): void
+    #[Test]
+    public function auto_maps_password_pattern_to_redactor(): void
     {
         config(['recordkeeper.privacy.mode' => 'redact']);
         config(['recordkeeper.privacy.sensitive_patterns' => ['password']]);
@@ -109,7 +117,8 @@ class AttributeResolverTest extends TestCase
         }
     }
 
-    public function test_privacy_mode_off_returns_empty_modifiers(): void
+    #[Test]
+    public function privacy_mode_off_returns_empty_modifiers(): void
     {
         config(['recordkeeper.privacy.mode' => 'off']);
         AttributeResolver::clearCache();
@@ -123,14 +132,16 @@ class AttributeResolverTest extends TestCase
     // Retention
     // ------------------------------------------------------------------
 
-    public function test_reads_retention_days_from_auditable_attribute(): void
+    #[Test]
+    public function reads_retention_days_from_auditable_attribute(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 
         $this->assertSame(365, $config->retentionDays);
     }
 
-    public function test_falls_back_to_config_retention_days(): void
+    #[Test]
+    public function falls_back_to_config_retention_days(): void
     {
         config(['recordkeeper.retention.default_days' => 90]);
         AttributeResolver::clearCache();
@@ -145,7 +156,8 @@ class AttributeResolverTest extends TestCase
     // Caching
     // ------------------------------------------------------------------
 
-    public function test_caches_resolution_per_class(): void
+    #[Test]
+    public function caches_resolution_per_class(): void
     {
         $config1 = AttributeResolver::resolve(Order::class);
         $config2 = AttributeResolver::resolve(Order::class);
@@ -153,7 +165,8 @@ class AttributeResolverTest extends TestCase
         $this->assertSame($config1, $config2);
     }
 
-    public function test_clear_cache_allows_fresh_resolution(): void
+    #[Test]
+    public function clear_cache_allows_fresh_resolution(): void
     {
         $config1 = AttributeResolver::resolve(Order::class);
         AttributeResolver::clearCache();
@@ -162,7 +175,8 @@ class AttributeResolverTest extends TestCase
         $this->assertNotSame($config1, $config2);
     }
 
-    public function test_instance_and_class_string_resolve_to_same_cache_entry(): void
+    #[Test]
+    public function instance_and_class_string_resolve_to_same_cache_entry(): void
     {
         $instance = new Order;
         $class = Order::class;
@@ -177,7 +191,8 @@ class AttributeResolverTest extends TestCase
     // Threshold
     // ------------------------------------------------------------------
 
-    public function test_threshold_defaults_to_zero(): void
+    #[Test]
+    public function threshold_defaults_to_zero(): void
     {
         $config = AttributeResolver::resolve(Order::class);
 

@@ -8,6 +8,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class RedactionInvariantTest extends TestCase
 {
@@ -17,7 +18,8 @@ class RedactionInvariantTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_discount_code_never_stored_in_plaintext_across_many_creates(): void
+    #[Test]
+    public function discount_code_never_stored_in_plaintext_across_many_creates(): void
     {
         $codes = array_map(fn (int $i) => "SAVE{$i}-SECRET-".uniqid(), range(1, 50));
 
@@ -38,7 +40,8 @@ class RedactionInvariantTest extends TestCase
         }
     }
 
-    public function test_national_id_never_stored_in_plaintext_across_many_creates(): void
+    #[Test]
+    public function national_id_never_stored_in_plaintext_across_many_creates(): void
     {
         $ids = array_map(fn (int $i) => "NID-{$i}-".uniqid(), range(1, 50));
 
@@ -59,7 +62,8 @@ class RedactionInvariantTest extends TestCase
         }
     }
 
-    public function test_no_plaintext_leak_across_interleaved_creates_and_updates(): void
+    #[Test]
+    public function no_plaintext_leak_across_interleaved_creates_and_updates(): void
     {
         $sensitiveValues = [];
 
@@ -96,7 +100,8 @@ class RedactionInvariantTest extends TestCase
         }
     }
 
-    public function test_excluded_field_never_appears_in_any_audit(): void
+    #[Test]
+    public function excluded_field_never_appears_in_any_audit(): void
     {
         $notes = 'top-secret-internal-note-'.uniqid();
 

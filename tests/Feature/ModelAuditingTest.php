@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Recordkeeper;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ModelAuditingTest extends TestCase
 {
@@ -23,7 +24,8 @@ class ModelAuditingTest extends TestCase
     // Basic event recording — delegates to laravel-auditing
     // ------------------------------------------------------------------
 
-    public function test_records_created_event_via_laravel_auditing(): void
+    #[Test]
+    public function records_created_event_via_laravel_auditing(): void
     {
         $order = Order::create(['status' => 'pending', 'total' => 100.00]);
 
@@ -35,7 +37,8 @@ class ModelAuditingTest extends TestCase
         ]);
     }
 
-    public function test_records_updated_event_with_diff(): void
+    #[Test]
+    public function records_updated_event_with_diff(): void
     {
         $order = Order::create(['status' => 'pending', 'total' => 100.00]);
         $order->update(['status' => 'shipped']);
@@ -49,7 +52,8 @@ class ModelAuditingTest extends TestCase
         $this->assertSame('shipped', $modified['status']['new']);
     }
 
-    public function test_records_deleted_event(): void
+    #[Test]
+    public function records_deleted_event(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->delete();
@@ -57,7 +61,8 @@ class ModelAuditingTest extends TestCase
         $this->assertDatabaseHas('audits', ['event' => 'deleted']);
     }
 
-    public function test_update_diff_does_not_contain_unchanged_fields(): void
+    #[Test]
+    public function update_diff_does_not_contain_unchanged_fields(): void
     {
         $order = Order::create(['status' => 'pending', 'total' => 50]);
         $order->update(['status' => 'active']); // total unchanged
@@ -73,7 +78,8 @@ class ModelAuditingTest extends TestCase
     // Excluded attributes (#[AuditExclude])
     // ------------------------------------------------------------------
 
-    public function test_excluded_attribute_not_present_in_created_audit(): void
+    #[Test]
+    public function excluded_attribute_not_present_in_created_audit(): void
     {
         Order::create(['status' => 'ok', 'internal_notes' => 'private']);
 
@@ -83,7 +89,8 @@ class ModelAuditingTest extends TestCase
         $this->assertArrayNotHasKey('internal_notes', $modified);
     }
 
-    public function test_excluded_attribute_not_present_in_updated_audit(): void
+    #[Test]
+    public function excluded_attribute_not_present_in_updated_audit(): void
     {
         $order = Order::create(['status' => 'ok']);
         $order->update(['internal_notes' => 'changed']);
@@ -98,7 +105,8 @@ class ModelAuditingTest extends TestCase
     // Context via transformAudit
     // ------------------------------------------------------------------
 
-    public function test_context_attached_via_push_context(): void
+    #[Test]
+    public function context_attached_via_push_context(): void
     {
         app(Recordkeeper::class)->pushContext(['reason' => 'admin-override', 'ticket' => 'T-99']);
 
@@ -111,7 +119,8 @@ class ModelAuditingTest extends TestCase
         app(Recordkeeper::class)->clearContext();
     }
 
-    public function test_context_cleared_after_test(): void
+    #[Test]
+    public function context_cleared_after_test(): void
     {
         app(Recordkeeper::class)->clearContext();
         Order::create(['status' => 'clean']);
@@ -124,7 +133,8 @@ class ModelAuditingTest extends TestCase
     // Tags via generateTags()
     // ------------------------------------------------------------------
 
-    public function test_tags_field_is_present_on_audit(): void
+    #[Test]
+    public function tags_field_is_present_on_audit(): void
     {
         Order::create(['status' => 'pending']);
 
@@ -133,7 +143,8 @@ class ModelAuditingTest extends TestCase
         $this->assertTrue(is_string($audit->tags) || $audit->tags === null);
     }
 
-    public function test_custom_tags_injected_via_with_tags(): void
+    #[Test]
+    public function custom_tags_injected_via_with_tags(): void
     {
         app(Recordkeeper::class)->withTags(['finance', 'q4']);
 
@@ -149,7 +160,8 @@ class ModelAuditingTest extends TestCase
     // isRollbackable()
     // ------------------------------------------------------------------
 
-    public function test_is_rollbackable_true_for_model_events(): void
+    #[Test]
+    public function is_rollbackable_true_for_model_events(): void
     {
         $order = Order::create(['status' => 'a']);
         $order->update(['status' => 'b']);
@@ -162,7 +174,8 @@ class ModelAuditingTest extends TestCase
         }
     }
 
-    public function test_is_rollbackable_false_for_route_events(): void
+    #[Test]
+    public function is_rollbackable_false_for_route_events(): void
     {
         $routeAudit = new Audit;
         $routeAudit->fill([
@@ -180,7 +193,8 @@ class ModelAuditingTest extends TestCase
     // Audit model not audited (no recursion)
     // ------------------------------------------------------------------
 
-    public function test_audit_model_writes_do_not_create_recursive_audits(): void
+    #[Test]
+    public function audit_model_writes_do_not_create_recursive_audits(): void
     {
         // Create one order → 1 audit row
         Order::create(['status' => 'pending']);

@@ -15,6 +15,7 @@ use LaraArabDev\Recordkeeper\Pipeline\Redact;
 use LaraArabDev\Recordkeeper\Pipeline\Tag;
 use LaraArabDev\Recordkeeper\Recordkeeper;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PipelineTest extends TestCase
 {
@@ -30,7 +31,8 @@ class PipelineTest extends TestCase
         );
     }
 
-    public function test_tag_passes_payload_through_unchanged(): void
+    #[Test]
+    public function tag_passes_payload_through_unchanged(): void
     {
         $stage = new Tag;
         $payload = $this->payload();
@@ -45,7 +47,8 @@ class PipelineTest extends TestCase
         $this->assertSame($payload, $received);
     }
 
-    public function test_compute_diff_passes_payload_through_unchanged(): void
+    #[Test]
+    public function compute_diff_passes_payload_through_unchanged(): void
     {
         $stage = new ComputeDiff;
         $payload = $this->payload();
@@ -60,7 +63,8 @@ class PipelineTest extends TestCase
         $this->assertTrue($called);
     }
 
-    public function test_encrypt_passes_payload_through_unchanged(): void
+    #[Test]
+    public function encrypt_passes_payload_through_unchanged(): void
     {
         $stage = app(Encrypt::class);
         $payload = $this->payload();
@@ -75,7 +79,8 @@ class PipelineTest extends TestCase
         $this->assertTrue($called);
     }
 
-    public function test_redact_masks_sensitive_pattern_fields(): void
+    #[Test]
+    public function redact_masks_sensitive_pattern_fields(): void
     {
         config(['recordkeeper.privacy.sensitive_patterns' => ['password', 'secret']]);
         config(['recordkeeper.privacy.mask' => '***']);
@@ -92,7 +97,8 @@ class PipelineTest extends TestCase
         $this->assertSame('ok', $payload->newValues['status']);
     }
 
-    public function test_redact_uses_custom_mask_string(): void
+    #[Test]
+    public function redact_uses_custom_mask_string(): void
     {
         config(['recordkeeper.privacy.sensitive_patterns' => ['token']]);
         config(['recordkeeper.privacy.mask' => '[HIDDEN]']);
@@ -105,7 +111,8 @@ class PipelineTest extends TestCase
         $this->assertSame('[HIDDEN]', $payload->newValues['token']);
     }
 
-    public function test_redact_leaves_payload_unchanged_when_no_patterns(): void
+    #[Test]
+    public function redact_leaves_payload_unchanged_when_no_patterns(): void
     {
         config(['recordkeeper.privacy.sensitive_patterns' => []]);
 
@@ -118,7 +125,8 @@ class PipelineTest extends TestCase
         $this->assertSame(99, $payload->newValues['total']);
     }
 
-    public function test_decorate_injects_batch_id_when_payload_has_none(): void
+    #[Test]
+    public function decorate_injects_batch_id_when_payload_has_none(): void
     {
         $rk = app(Recordkeeper::class);
         $rk->batch('my-batch', function () use ($rk): void {
@@ -131,7 +139,8 @@ class PipelineTest extends TestCase
         });
     }
 
-    public function test_decorate_does_not_overwrite_existing_batch_id(): void
+    #[Test]
+    public function decorate_does_not_overwrite_existing_batch_id(): void
     {
         $rk = app(Recordkeeper::class);
         $rk->batch('global-batch', function () use ($rk): void {
@@ -144,7 +153,8 @@ class PipelineTest extends TestCase
         });
     }
 
-    public function test_persist_saves_audit_and_fires_change_recorded(): void
+    #[Test]
+    public function persist_saves_audit_and_fires_change_recorded(): void
     {
         $fired = [];
         $this->app['events']->listen(ChangeRecorded::class, function ($e) use (&$fired): void {

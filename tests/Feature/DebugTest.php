@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
 use OwenIt\Auditing\Contracts\Auditor;
+use PHPUnit\Framework\Attributes\Test;
 
 class DebugTest extends TestCase
 {
@@ -18,7 +19,8 @@ class DebugTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_debug_auditor_directly(): void
+    #[Test]
+    public function debug_auditor_directly(): void
     {
         $order = Order::create(['status' => 'pending', 'total' => 100.00]);
         echo "\nOrder created with id: ".$order->id."\n";

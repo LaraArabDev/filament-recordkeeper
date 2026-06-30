@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Tests for date-based pruning via MassPrunable.
@@ -23,7 +24,8 @@ class PrunableTest extends TestCase
         AttributeResolver::clearCache();
     }
 
-    public function test_prunable_scope_returns_nothing_when_disabled(): void
+    #[Test]
+    public function prunable_scope_returns_nothing_when_disabled(): void
     {
         config(['recordkeeper.retention.default_days' => 0]);
 
@@ -35,7 +37,8 @@ class PrunableTest extends TestCase
         $this->assertCount(0, $prunable);
     }
 
-    public function test_prunable_scope_matches_records_older_than_retention(): void
+    #[Test]
+    public function prunable_scope_matches_records_older_than_retention(): void
     {
         config(['recordkeeper.retention.default_days' => 30]);
 
@@ -47,7 +50,8 @@ class PrunableTest extends TestCase
         $this->assertGreaterThan(0, $prunable->count());
     }
 
-    public function test_prunable_scope_keeps_records_within_retention(): void
+    #[Test]
+    public function prunable_scope_keeps_records_within_retention(): void
     {
         config(['recordkeeper.retention.default_days' => 365]);
 
@@ -59,7 +63,8 @@ class PrunableTest extends TestCase
         $this->assertCount(0, $prunable);
     }
 
-    public function test_prune_command_deletes_old_records(): void
+    #[Test]
+    public function prune_command_deletes_old_records(): void
     {
         Order::create(['status' => 'old']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
@@ -70,7 +75,8 @@ class PrunableTest extends TestCase
         $this->assertDatabaseCount('audits', 0);
     }
 
-    public function test_prune_command_dry_run_does_not_delete(): void
+    #[Test]
+    public function prune_command_dry_run_does_not_delete(): void
     {
         Order::create(['status' => 'old']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
@@ -81,7 +87,8 @@ class PrunableTest extends TestCase
         $this->assertDatabaseCount('audits', 1);
     }
 
-    public function test_prune_action_returns_deleted_count(): void
+    #[Test]
+    public function prune_action_returns_deleted_count(): void
     {
         Order::create(['status' => 'a']);
         Order::create(['status' => 'b']);
@@ -93,7 +100,8 @@ class PrunableTest extends TestCase
         $this->assertDatabaseCount('audits', 0);
     }
 
-    public function test_prune_action_dry_run_returns_count_without_deleting(): void
+    #[Test]
+    public function prune_action_dry_run_returns_count_without_deleting(): void
     {
         Order::create(['status' => 'a']);
         Audit::query()->update(['created_at' => Carbon::now()->subDays(400)]);
@@ -104,7 +112,8 @@ class PrunableTest extends TestCase
         $this->assertDatabaseCount('audits', 1);
     }
 
-    public function test_recent_records_not_pruned(): void
+    #[Test]
+    public function recent_records_not_pruned(): void
     {
         Order::create(['status' => 'old']);
         Order::create(['status' => 'new']);

@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Modifiers\EncryptAttribute;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PrivacyTest extends TestCase
 {
@@ -23,7 +24,8 @@ class PrivacyTest extends TestCase
     // Redact modifier via #[Redact] attribute
     // ------------------------------------------------------------------
 
-    public function test_redacts_redact_flagged_attribute(): void
+    #[Test]
+    public function redacts_redact_flagged_attribute(): void
     {
         Order::create(['status' => 'pending', 'discount_code' => 'SAVE20']);
 
@@ -33,7 +35,8 @@ class PrivacyTest extends TestCase
         $this->assertSame('***', $modified['discount_code']['new'] ?? null);
     }
 
-    public function test_original_value_not_stored_for_redacted_field(): void
+    #[Test]
+    public function original_value_not_stored_for_redacted_field(): void
     {
         Order::create(['discount_code' => 'SECRET50']);
 
@@ -45,7 +48,8 @@ class PrivacyTest extends TestCase
     // Pattern-based auto-redaction
     // ------------------------------------------------------------------
 
-    public function test_redacts_pattern_matched_password(): void
+    #[Test]
+    public function redacts_pattern_matched_password(): void
     {
         config(['recordkeeper.privacy.mode' => 'redact']);
         config(['recordkeeper.privacy.sensitive_patterns' => ['password']]);
@@ -59,7 +63,8 @@ class PrivacyTest extends TestCase
         $this->assertSame('***', $modified['password']['new'] ?? null);
     }
 
-    public function test_non_sensitive_fields_are_not_redacted(): void
+    #[Test]
+    public function non_sensitive_fields_are_not_redacted(): void
     {
         Order::create(['status' => 'active', 'total' => 99.99]);
 
@@ -74,7 +79,8 @@ class PrivacyTest extends TestCase
     // Encrypt modifier via #[Encrypt] attribute
     // ------------------------------------------------------------------
 
-    public function test_encrypts_encrypt_flagged_attribute(): void
+    #[Test]
+    public function encrypts_encrypt_flagged_attribute(): void
     {
         Order::create(['national_id' => '123-45-6789']);
 
@@ -84,7 +90,8 @@ class PrivacyTest extends TestCase
         $this->assertTrue(EncryptAttribute::isEncrypted($modified['national_id']['new'] ?? ''));
     }
 
-    public function test_no_plaintext_in_encrypted_field(): void
+    #[Test]
+    public function no_plaintext_in_encrypted_field(): void
     {
         Order::create(['national_id' => '987-65-4321']);
 
@@ -92,7 +99,8 @@ class PrivacyTest extends TestCase
         $this->assertStringNotContainsString('987-65-4321', json_encode($audit->new_values));
     }
 
-    public function test_encrypted_value_is_decryptable(): void
+    #[Test]
+    public function encrypted_value_is_decryptable(): void
     {
         Order::create(['national_id' => 'ABC-123']);
 
@@ -107,7 +115,8 @@ class PrivacyTest extends TestCase
     // Privacy mode = off
     // ------------------------------------------------------------------
 
-    public function test_privacy_off_clears_all_modifiers(): void
+    #[Test]
+    public function privacy_off_clears_all_modifiers(): void
     {
         config(['recordkeeper.privacy.mode' => 'off']);
         AttributeResolver::clearCache();
@@ -121,7 +130,8 @@ class PrivacyTest extends TestCase
     // RedactValues action (used by middleware body sanitisation)
     // ------------------------------------------------------------------
 
-    public function test_redact_values_action_masks_sensitive_keys(): void
+    #[Test]
+    public function redact_values_action_masks_sensitive_keys(): void
     {
         $action = app(RedactValues::class);
 
@@ -138,7 +148,8 @@ class PrivacyTest extends TestCase
         $this->assertSame('john@example.com', $result['email']);
     }
 
-    public function test_redact_values_action_uses_custom_patterns(): void
+    #[Test]
+    public function redact_values_action_uses_custom_patterns(): void
     {
         $action = app(RedactValues::class);
 

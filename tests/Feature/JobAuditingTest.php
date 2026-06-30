@@ -11,6 +11,7 @@ use Illuminate\Queue\Events\JobQueued;
 use LaraArabDev\Recordkeeper\Attributes\AuditJob;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 #[AuditJob]
 class AuditedJob
@@ -28,7 +29,8 @@ final class JobAuditingTest extends TestCase
         $app['config']->set('recordkeeper.jobs.enabled', false);
     }
 
-    public function test_job_with_attribute_is_audited_when_jobs_disabled(): void
+    #[Test]
+    public function job_with_attribute_is_audited_when_jobs_disabled(): void
     {
         $this->fireProcessed(AuditedJob::class);
 
@@ -39,14 +41,16 @@ final class JobAuditingTest extends TestCase
         $this->assertSame(AuditedJob::class, $audit->context['job']);
     }
 
-    public function test_job_without_attribute_is_not_audited_when_jobs_disabled(): void
+    #[Test]
+    public function job_without_attribute_is_not_audited_when_jobs_disabled(): void
     {
         $this->fireProcessed(NonAuditedJob::class);
 
         $this->assertSame(0, Audit::where('event', 'job.processed')->count());
     }
 
-    public function test_all_jobs_audited_when_jobs_enabled(): void
+    #[Test]
+    public function all_jobs_audited_when_jobs_enabled(): void
     {
         config(['recordkeeper.jobs.enabled' => true]);
 
@@ -55,7 +59,8 @@ final class JobAuditingTest extends TestCase
         $this->assertSame(1, Audit::where('event', 'job.processed')->count());
     }
 
-    public function test_excluded_job_is_not_audited(): void
+    #[Test]
+    public function excluded_job_is_not_audited(): void
     {
         config([
             'recordkeeper.jobs.enabled' => true,
@@ -67,7 +72,8 @@ final class JobAuditingTest extends TestCase
         $this->assertSame(0, Audit::where('event', 'job.processed')->count());
     }
 
-    public function test_job_queued_event_is_audited(): void
+    #[Test]
+    public function job_queued_event_is_audited(): void
     {
         $job = new AuditedJob;
 
@@ -76,7 +82,8 @@ final class JobAuditingTest extends TestCase
         $this->assertSame(1, Audit::where('event', 'job.queued')->count());
     }
 
-    public function test_job_failed_context_includes_exception(): void
+    #[Test]
+    public function job_failed_context_includes_exception(): void
     {
         config(['recordkeeper.jobs.enabled' => true]);
 
@@ -88,7 +95,8 @@ final class JobAuditingTest extends TestCase
         $this->assertSame('Something went wrong', $audit->context['exception']);
     }
 
-    public function test_model_scope_job_audits(): void
+    #[Test]
+    public function model_scope_job_audits(): void
     {
         config(['recordkeeper.jobs.enabled' => true]);
 

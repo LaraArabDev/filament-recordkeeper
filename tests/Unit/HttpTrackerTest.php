@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LaraArabDev\Recordkeeper\Tests\Unit;
 
 use LaraArabDev\Recordkeeper\Support\HttpTracker;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class HttpTrackerTest extends TestCase
@@ -17,19 +18,22 @@ final class HttpTrackerTest extends TestCase
         $this->tracker = new HttpTracker;
     }
 
-    public function test_initial_audit_id_is_null(): void
+    #[Test]
+    public function initial_audit_id_is_null(): void
     {
         $this->assertNull($this->tracker->currentAuditId());
     }
 
-    public function test_set_context_stores_audit_id(): void
+    #[Test]
+    public function set_context_stores_audit_id(): void
     {
         $this->tracker->setContext(42);
 
         $this->assertSame(42, $this->tracker->currentAuditId());
     }
 
-    public function test_clear_context_resets_to_null(): void
+    #[Test]
+    public function clear_context_resets_to_null(): void
     {
         $this->tracker->setContext(42);
         $this->tracker->clearContext();
@@ -37,7 +41,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertNull($this->tracker->currentAuditId());
     }
 
-    public function test_set_context_overwrites_previous_value(): void
+    #[Test]
+    public function set_context_overwrites_previous_value(): void
     {
         $this->tracker->setContext(1);
         $this->tracker->setContext(99);
@@ -45,7 +50,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertSame(99, $this->tracker->currentAuditId());
     }
 
-    public function test_finish_request_returns_duration(): void
+    #[Test]
+    public function finish_request_returns_duration(): void
     {
         $obj = new \stdClass;
         $start = microtime(true);
@@ -61,7 +67,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertIsInt($result['duration_ms']);
     }
 
-    public function test_finish_unknown_request_returns_null(): void
+    #[Test]
+    public function finish_unknown_request_returns_null(): void
     {
         $obj = new \stdClass;
         $result = $this->tracker->finishRequest($obj, microtime(true));
@@ -69,7 +76,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_finish_request_cleans_up_pending_entry(): void
+    #[Test]
+    public function finish_request_cleans_up_pending_entry(): void
     {
         $obj = new \stdClass;
         $this->tracker->startRequest($obj, microtime(true));
@@ -80,7 +88,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_multiple_requests_tracked_independently(): void
+    #[Test]
+    public function multiple_requests_tracked_independently(): void
     {
         $obj1 = new \stdClass;
         $obj2 = new \stdClass;
@@ -95,7 +104,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertSame(1500, $result2['duration_ms']);
     }
 
-    public function test_duration_computed_in_milliseconds(): void
+    #[Test]
+    public function duration_computed_in_milliseconds(): void
     {
         $obj = new \stdClass;
         $this->tracker->startRequest($obj, 1000.000);
@@ -104,7 +114,8 @@ final class HttpTrackerTest extends TestCase
         $this->assertSame(123, $result['duration_ms']);
     }
 
-    public function test_zero_duration_when_start_equals_end(): void
+    #[Test]
+    public function zero_duration_when_start_equals_end(): void
     {
         $obj = new \stdClass;
         $time = microtime(true);

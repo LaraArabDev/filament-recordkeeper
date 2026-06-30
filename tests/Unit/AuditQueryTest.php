@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class AuditQueryTest extends TestCase
 {
@@ -54,7 +55,8 @@ class AuditQueryTest extends TestCase
         ]);
     }
 
-    public function test_model_filter_by_short_name(): void
+    #[Test]
+    public function model_filter_by_short_name(): void
     {
         $this->seedAudits();
 
@@ -64,7 +66,8 @@ class AuditQueryTest extends TestCase
         $this->assertGreaterThan(0, $results->count());
     }
 
-    public function test_model_filter_by_fqcn(): void
+    #[Test]
+    public function model_filter_by_fqcn(): void
     {
         $this->seedAudits();
 
@@ -73,7 +76,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->auditable_type === Order::class));
     }
 
-    public function test_event_filter_single(): void
+    #[Test]
+    public function event_filter_single(): void
     {
         $this->seedAudits();
 
@@ -82,7 +86,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->event === 'updated'));
     }
 
-    public function test_event_filter_multiple(): void
+    #[Test]
+    public function event_filter_multiple(): void
     {
         $this->seedAudits();
 
@@ -93,7 +98,8 @@ class AuditQueryTest extends TestCase
         }
     }
 
-    public function test_guard_filter_hits_indexed_column(): void
+    #[Test]
+    public function guard_filter_hits_indexed_column(): void
     {
         $this->seedAudits();
 
@@ -104,7 +110,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($api->every(fn ($a) => $a->guard === 'api'));
     }
 
-    public function test_guard_filter_excludes_other_guards(): void
+    #[Test]
+    public function guard_filter_excludes_other_guards(): void
     {
         $this->seedAudits();
 
@@ -113,7 +120,8 @@ class AuditQueryTest extends TestCase
         $this->assertFalse($webOnly->contains(fn ($a) => $a->guard === 'api'));
     }
 
-    public function test_actor_filter_by_id_only(): void
+    #[Test]
+    public function actor_filter_by_id_only(): void
     {
         $this->seedAudits();
 
@@ -122,7 +130,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->user_id == 99));
     }
 
-    public function test_actor_filter_by_id_and_type_short_name(): void
+    #[Test]
+    public function actor_filter_by_id_and_type_short_name(): void
     {
         $this->seedAudits();
 
@@ -132,7 +141,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->user_id == 99));
     }
 
-    public function test_actor_filter_by_id_and_type_fqcn(): void
+    #[Test]
+    public function actor_filter_by_id_and_type_fqcn(): void
     {
         $this->seedAudits();
 
@@ -141,7 +151,8 @@ class AuditQueryTest extends TestCase
         $this->assertGreaterThan(0, $results->count());
     }
 
-    public function test_actor_type_filter_by_short_name(): void
+    #[Test]
+    public function actor_type_filter_by_short_name(): void
     {
         $this->seedAudits();
 
@@ -150,7 +161,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => str_contains((string) $a->user_type, 'Admin')));
     }
 
-    public function test_batch_filter(): void
+    #[Test]
+    public function batch_filter(): void
     {
         $this->seedAudits();
 
@@ -159,7 +171,8 @@ class AuditQueryTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->batch_id === 'batch-a'));
     }
 
-    public function test_rollbackable_excludes_route_events(): void
+    #[Test]
+    public function rollbackable_excludes_route_events(): void
     {
         $this->seedAudits();
 
@@ -168,7 +181,8 @@ class AuditQueryTest extends TestCase
         $this->assertFalse($results->contains(fn ($a) => str_starts_with((string) $a->event, 'route.')));
     }
 
-    public function test_search_by_event_name(): void
+    #[Test]
+    public function search_by_event_name(): void
     {
         $this->seedAudits();
 
@@ -177,7 +191,8 @@ class AuditQueryTest extends TestCase
         $this->assertGreaterThan(0, $results->count());
     }
 
-    public function test_latest_orders_newest_first(): void
+    #[Test]
+    public function latest_orders_newest_first(): void
     {
         $this->seedAudits();
 
@@ -190,7 +205,8 @@ class AuditQueryTest extends TestCase
         $this->assertSame($sorted, $timestamps);
     }
 
-    public function test_limit_and_offset(): void
+    #[Test]
+    public function limit_and_offset(): void
     {
         $this->seedAudits();
 
@@ -202,5 +218,112 @@ class AuditQueryTest extends TestCase
 
         $this->assertCount(2, $page1);
         $this->assertFalse($page1->pluck('id')->intersect($page2->pluck('id'))->isNotEmpty());
+    }
+
+    #[Test]
+    public function subject_id_filter(): void
+    {
+        $this->seedAudits();
+        $order = Order::first();
+
+        $results = (new AuditQuery)->subjectId($order->id)->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => $a->auditable_id == $order->id));
+    }
+
+    #[Test]
+    public function only_authenticated_excludes_system_audits(): void
+    {
+        $this->seedAudits();
+
+        $results = (new AuditQuery)->onlyAuthenticated()->builder()->get();
+
+        $this->assertTrue($results->every(fn ($a) => $a->user_id !== null));
+    }
+
+    #[Test]
+    public function between_date_range(): void
+    {
+        $this->seedAudits();
+
+        $results = (new AuditQuery)
+            ->between(now()->subMinute(), now()->addMinute())
+            ->builder()
+            ->get();
+
+        $this->assertGreaterThan(0, $results->count());
+    }
+
+    #[Test]
+    public function since_date_filter(): void
+    {
+        $this->seedAudits();
+
+        $results = (new AuditQuery)->since(now()->subMinute())->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+    }
+
+    #[Test]
+    public function jobs_filter(): void
+    {
+        Audit::create([
+            'event' => 'job.processed',
+            'auditable_type' => 'job',
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+
+        $results = (new AuditQuery)->jobs()->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => str_starts_with($a->event, 'job.')));
+    }
+
+    #[Test]
+    public function commands_filter(): void
+    {
+        Audit::create([
+            'event' => 'command.finished',
+            'auditable_type' => 'command',
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+
+        $results = (new AuditQuery)->commands()->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => str_starts_with($a->event, 'command.')));
+    }
+
+    #[Test]
+    public function tag_filter_with_array(): void
+    {
+        $this->seedAudits();
+
+        Audit::create([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+            'tags' => 'finance,billing',
+        ]);
+
+        $results = (new AuditQuery)->tag(['finance'])->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => str_contains((string) $a->tags, 'finance')));
+    }
+
+    #[Test]
+    public function actor_type_filter_by_fqcn(): void
+    {
+        $this->seedAudits();
+
+        $results = (new AuditQuery)->actorType('App\\Models\\Admin')->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => $a->user_type === 'App\\Models\\Admin'));
     }
 }

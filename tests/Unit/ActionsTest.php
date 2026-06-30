@@ -17,6 +17,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ActionsTest extends TestCase
 {
@@ -28,7 +29,8 @@ class ActionsTest extends TestCase
 
     // ── RecordAudit ───────────────────────────────────────────────────────
 
-    public function test_record_audit_persists_payload_to_database(): void
+    #[Test]
+    public function record_audit_persists_payload_to_database(): void
     {
         $payload = new AuditPayload(
             event: 'created',
@@ -45,7 +47,8 @@ class ActionsTest extends TestCase
         $this->assertDatabaseHas('audits', ['event' => 'created', 'auditable_type' => 'Order']);
     }
 
-    public function test_record_audit_handle_is_equivalent_to_invoke(): void
+    #[Test]
+    public function record_audit_handle_is_equivalent_to_invoke(): void
     {
         $payload = new AuditPayload(
             event: 'updated',
@@ -61,7 +64,8 @@ class ActionsTest extends TestCase
         $this->assertSame('updated', $audit->event);
     }
 
-    public function test_record_audit_stores_context(): void
+    #[Test]
+    public function record_audit_stores_context(): void
     {
         $payload = new AuditPayload(
             event: 'system.custom',
@@ -79,14 +83,16 @@ class ActionsTest extends TestCase
 
     // ── SearchAudits ──────────────────────────────────────────────────────
 
-    public function test_search_returns_empty_when_no_audits(): void
+    #[Test]
+    public function search_returns_empty_when_no_audits(): void
     {
         $results = app(SearchAudits::class)();
 
         $this->assertCount(0, $results);
     }
 
-    public function test_search_returns_audits_without_filters(): void
+    #[Test]
+    public function search_returns_audits_without_filters(): void
     {
         Order::create(['status' => 'a']);
         Order::create(['status' => 'b']);
@@ -96,7 +102,8 @@ class ActionsTest extends TestCase
         $this->assertGreaterThanOrEqual(2, $results->count());
     }
 
-    public function test_search_filters_by_event(): void
+    #[Test]
+    public function search_filters_by_event(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->update(['status' => 'shipped']);
@@ -108,7 +115,8 @@ class ActionsTest extends TestCase
         }
     }
 
-    public function test_search_filters_by_model_short_name(): void
+    #[Test]
+    public function search_filters_by_model_short_name(): void
     {
         Order::create(['status' => 'ok']);
 
@@ -120,7 +128,8 @@ class ActionsTest extends TestCase
         }
     }
 
-    public function test_search_respects_limit(): void
+    #[Test]
+    public function search_respects_limit(): void
     {
         for ($i = 0; $i < 10; $i++) {
             Order::create(['status' => "s{$i}"]);
@@ -131,7 +140,8 @@ class ActionsTest extends TestCase
         $this->assertCount(3, $results);
     }
 
-    public function test_search_respects_offset(): void
+    #[Test]
+    public function search_respects_offset(): void
     {
         for ($i = 0; $i < 5; $i++) {
             Order::create(['status' => "step{$i}"]);
@@ -143,7 +153,8 @@ class ActionsTest extends TestCase
         $this->assertCount(max(0, $all->count() - 2), $paged);
     }
 
-    public function test_search_filters_by_batch(): void
+    #[Test]
+    public function search_filters_by_batch(): void
     {
         Recordkeeper::batch('batch-xyz', fn () => Order::create(['status' => 'batched']));
         Order::create(['status' => 'no-batch']);
@@ -154,7 +165,8 @@ class ActionsTest extends TestCase
         $this->assertSame('batch-xyz', $results->first()->batch_id);
     }
 
-    public function test_search_handle_method_delegates_to_invoke(): void
+    #[Test]
+    public function search_handle_method_delegates_to_invoke(): void
     {
         Order::create(['status' => 'ok']);
 
@@ -166,7 +178,8 @@ class ActionsTest extends TestCase
 
     // ── RedactValues ──────────────────────────────────────────────────────
 
-    public function test_redact_values_handle_is_equivalent_to_invoke(): void
+    #[Test]
+    public function redact_values_handle_is_equivalent_to_invoke(): void
     {
         config(['recordkeeper.privacy.sensitive_patterns' => ['token']]);
 
@@ -177,7 +190,8 @@ class ActionsTest extends TestCase
         $this->assertSame('Joe', $result['name']);
     }
 
-    public function test_redact_values_uses_explicit_patterns(): void
+    #[Test]
+    public function redact_values_uses_explicit_patterns(): void
     {
         $action = app(RedactValues::class);
         $result = $action(['secret' => 'x', 'other' => 'y'], ['secret']);
@@ -188,7 +202,8 @@ class ActionsTest extends TestCase
 
     // ── PruneAudits ───────────────────────────────────────────────────────
 
-    public function test_prune_audits_handle_is_equivalent_to_invoke(): void
+    #[Test]
+    public function prune_audits_handle_is_equivalent_to_invoke(): void
     {
         $action = app(PruneAudits::class);
         $count = $action->handle(0, true); // dry-run with 0 days = would prune all
@@ -198,7 +213,8 @@ class ActionsTest extends TestCase
 
     // ── RevertAudit ───────────────────────────────────────────────────────
 
-    public function test_revert_audit_handle_performs_rollback(): void
+    #[Test]
+    public function revert_audit_handle_performs_rollback(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->update(['status' => 'shipped']);
@@ -212,7 +228,8 @@ class ActionsTest extends TestCase
 
     // ── RevertBatch ───────────────────────────────────────────────────────
 
-    public function test_revert_batch_handle_rolls_back_batch(): void
+    #[Test]
+    public function revert_batch_handle_rolls_back_batch(): void
     {
         Recordkeeper::batch('unit-batch', fn () => Order::create(['status' => 'batched']));
 
@@ -224,7 +241,8 @@ class ActionsTest extends TestCase
 
     // ── RestoreDeleted ────────────────────────────────────────────────────
 
-    public function test_restore_deleted_handle_restores_soft_deleted(): void
+    #[Test]
+    public function restore_deleted_handle_restores_soft_deleted(): void
     {
         $order = Order::create(['status' => 'active']);
         $order->delete();
@@ -238,7 +256,8 @@ class ActionsTest extends TestCase
     }
 
     // ── SearchAudits guard filter ─────────────────────────────────────────
-    public function test_search_filters_by_guard(): void
+    #[Test]
+    public function search_filters_by_guard(): void
     {
         $payload = new AuditPayload(
             event: 'route.get',

@@ -10,6 +10,7 @@ use LaraArabDev\Recordkeeper\Http\Middleware\AuditRoute;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AuditQuery;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Guard is stored as a dedicated indexed column — verify it is:
@@ -26,7 +27,8 @@ class GuardFilteringTest extends TestCase
         Route::middleware(AuditApi::class)->get('/api-endpoint', fn () => response()->json(['ok' => true]));
     }
 
-    public function test_web_middleware_writes_guard_column_as_web(): void
+    #[Test]
+    public function web_middleware_writes_guard_column_as_web(): void
     {
         $this->get('/web-endpoint');
 
@@ -35,7 +37,8 @@ class GuardFilteringTest extends TestCase
         $this->assertSame('web', $audit->guard);
     }
 
-    public function test_api_middleware_writes_guard_column_as_api(): void
+    #[Test]
+    public function api_middleware_writes_guard_column_as_api(): void
     {
         $this->get('/api-endpoint');
 
@@ -44,7 +47,8 @@ class GuardFilteringTest extends TestCase
         $this->assertSame('api', $audit->guard);
     }
 
-    public function test_guard_not_stored_inside_context_json(): void
+    #[Test]
+    public function guard_not_stored_inside_context_json(): void
     {
         $this->get('/web-endpoint');
 
@@ -53,7 +57,8 @@ class GuardFilteringTest extends TestCase
         $this->assertArrayNotHasKey('guard', (array) ($audit->context ?? []));
     }
 
-    public function test_audit_query_guard_filters_by_indexed_column(): void
+    #[Test]
+    public function audit_query_guard_filters_by_indexed_column(): void
     {
         $this->get('/web-endpoint');
         $this->get('/api-endpoint');
@@ -67,7 +72,8 @@ class GuardFilteringTest extends TestCase
         $this->assertSame('api', $apiAudits->first()->guard);
     }
 
-    public function test_model_scope_for_guard_returns_correct_records(): void
+    #[Test]
+    public function model_scope_for_guard_returns_correct_records(): void
     {
         $this->get('/web-endpoint');
         $this->get('/api-endpoint');
@@ -77,7 +83,8 @@ class GuardFilteringTest extends TestCase
         $this->assertCount(0, Audit::forGuard('admin')->get());
     }
 
-    public function test_multiple_guards_can_coexist_in_same_table(): void
+    #[Test]
+    public function multiple_guards_can_coexist_in_same_table(): void
     {
         $this->get('/web-endpoint');
         $this->get('/api-endpoint');

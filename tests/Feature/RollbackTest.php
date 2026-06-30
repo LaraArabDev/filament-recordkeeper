@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class RollbackTest extends TestCase
 {
@@ -23,7 +24,8 @@ class RollbackTest extends TestCase
     // Update rollback — uses laravel-auditing's transitionTo()
     // ------------------------------------------------------------------
 
-    public function test_rolls_back_update_via_transition_to(): void
+    #[Test]
+    public function rolls_back_update_via_transition_to(): void
     {
         $order = Order::create(['status' => 'pending', 'total' => 100]);
         $order->update(['status' => 'shipped']);
@@ -33,7 +35,8 @@ class RollbackTest extends TestCase
         $this->assertSame('pending', $order->fresh()->status);
     }
 
-    public function test_rollback_update_only_restores_changed_field(): void
+    #[Test]
+    public function rollback_update_only_restores_changed_field(): void
     {
         $order = Order::create(['status' => 'a', 'total' => 50]);
         $order->update(['status' => 'b']);
@@ -45,7 +48,8 @@ class RollbackTest extends TestCase
         $this->assertEquals(50, $fresh->total); // unchanged
     }
 
-    public function test_multiple_sequential_rollbacks(): void
+    #[Test]
+    public function multiple_sequential_rollbacks(): void
     {
         $order = Order::create(['status' => 'v1']);
         $order->update(['status' => 'v2']);
@@ -64,7 +68,8 @@ class RollbackTest extends TestCase
     // Dry run
     // ------------------------------------------------------------------
 
-    public function test_dry_run_returns_action_array(): void
+    #[Test]
+    public function dry_run_returns_action_array(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->update(['status' => 'shipped']);
@@ -75,7 +80,8 @@ class RollbackTest extends TestCase
         $this->assertSame('update', $result['action']);
     }
 
-    public function test_dry_run_does_not_modify_record(): void
+    #[Test]
+    public function dry_run_does_not_modify_record(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->update(['status' => 'shipped']);
@@ -89,7 +95,8 @@ class RollbackTest extends TestCase
     // Create rollback — deletes the record
     // ------------------------------------------------------------------
 
-    public function test_rollback_of_create_deletes_record(): void
+    #[Test]
+    public function rollback_of_create_deletes_record(): void
     {
         $order = Order::create(['status' => 'pending']);
 
@@ -98,7 +105,8 @@ class RollbackTest extends TestCase
         $this->assertDatabaseMissing('orders', ['id' => $order->id]);
     }
 
-    public function test_rollback_of_create_dry_run_returns_delete_action(): void
+    #[Test]
+    public function rollback_of_create_dry_run_returns_delete_action(): void
     {
         $order = Order::create(['status' => 'pending']);
 
@@ -112,7 +120,8 @@ class RollbackTest extends TestCase
     // Delete rollback — restores soft-deleted record
     // ------------------------------------------------------------------
 
-    public function test_restores_soft_deleted_record(): void
+    #[Test]
+    public function restores_soft_deleted_record(): void
     {
         $order = Order::create(['status' => 'active', 'total' => 50]);
         $order->delete();
@@ -124,7 +133,8 @@ class RollbackTest extends TestCase
         $this->assertNull($restored->deleted_at);
     }
 
-    public function test_restore_dry_run_does_not_un_delete(): void
+    #[Test]
+    public function restore_dry_run_does_not_un_delete(): void
     {
         $order = Order::create(['status' => 'active']);
         $order->delete();
@@ -139,7 +149,8 @@ class RollbackTest extends TestCase
     // Batch rollback
     // ------------------------------------------------------------------
 
-    public function test_rollback_batch_reverts_all_in_batch(): void
+    #[Test]
+    public function rollback_batch_reverts_all_in_batch(): void
     {
         Recordkeeper::batch('test-batch', function (): void {
             Order::create(['status' => 'a']);
@@ -151,7 +162,8 @@ class RollbackTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_rollback_batch_only_affects_its_batch_id(): void
+    #[Test]
+    public function rollback_batch_only_affects_its_batch_id(): void
     {
         Recordkeeper::batch('batch-1', fn () => Order::create(['status' => 'x']));
         Order::create(['status' => 'no-batch']); // no batch_id
@@ -163,7 +175,8 @@ class RollbackTest extends TestCase
         $this->assertDatabaseHas('orders', ['status' => 'no-batch']);
     }
 
-    public function test_rollback_batch_dry_run(): void
+    #[Test]
+    public function rollback_batch_dry_run(): void
     {
         Recordkeeper::batch('dry-batch', fn () => Order::create(['status' => 'z']));
 
@@ -177,7 +190,8 @@ class RollbackTest extends TestCase
     // Guard / config
     // ------------------------------------------------------------------
 
-    public function test_rollback_throws_when_disabled(): void
+    #[Test]
+    public function rollback_throws_when_disabled(): void
     {
         config(['recordkeeper.rollback.enabled' => false]);
 
@@ -188,7 +202,8 @@ class RollbackTest extends TestCase
         Audit::where('event', 'updated')->first()->rollback();
     }
 
-    public function test_restore_throws_when_restore_deleted_disabled(): void
+    #[Test]
+    public function restore_throws_when_restore_deleted_disabled(): void
     {
         config(['recordkeeper.rollback.restore_deleted' => false]);
 

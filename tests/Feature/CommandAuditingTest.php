@@ -8,6 +8,7 @@ use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -19,7 +20,8 @@ final class CommandAuditingTest extends TestCase
         $app['config']->set('recordkeeper.commands.enabled', true);
     }
 
-    public function test_command_finished_creates_audit(): void
+    #[Test]
+    public function command_finished_creates_audit(): void
     {
         $this->fireCommand('cache:clear', 0);
 
@@ -31,7 +33,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(0, $audit->context['exit_code']);
     }
 
-    public function test_command_duration_is_recorded(): void
+    #[Test]
+    public function command_duration_is_recorded(): void
     {
         $this->fireCommand('cache:clear', 0);
 
@@ -41,14 +44,16 @@ final class CommandAuditingTest extends TestCase
         $this->assertIsInt($audit->context['duration_ms']);
     }
 
-    public function test_excluded_command_is_not_audited(): void
+    #[Test]
+    public function excluded_command_is_not_audited(): void
     {
         $this->fireCommand('schedule:run', 0);
 
         $this->assertSame(0, Audit::where('event', 'command.finished')->count());
     }
 
-    public function test_custom_excluded_command_is_not_audited(): void
+    #[Test]
+    public function custom_excluded_command_is_not_audited(): void
     {
         config(['recordkeeper.commands.exclude' => ['cache:clear']]);
 
@@ -57,7 +62,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(0, Audit::where('event', 'command.finished')->count());
     }
 
-    public function test_command_not_audited_when_disabled(): void
+    #[Test]
+    public function command_not_audited_when_disabled(): void
     {
         config(['recordkeeper.commands.enabled' => false]);
 
@@ -66,7 +72,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(0, Audit::where('event', 'command.finished')->count());
     }
 
-    public function test_model_scope_command_audits(): void
+    #[Test]
+    public function model_scope_command_audits(): void
     {
         $this->fireCommand('cache:clear', 0);
         Audit::create(['event' => 'updated', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
@@ -74,7 +81,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(1, Audit::commandAudits()->count());
     }
 
-    public function test_memory_peak_is_recorded(): void
+    #[Test]
+    public function memory_peak_is_recorded(): void
     {
         $this->fireCommand('cache:clear', 0);
 
@@ -85,7 +93,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertGreaterThan(0, $audit->context['memory_peak_mb']);
     }
 
-    public function test_audit_count_is_recorded(): void
+    #[Test]
+    public function audit_count_is_recorded(): void
     {
         $this->fireCommand('cache:clear', 0);
 
@@ -95,7 +104,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertIsInt($audit->context['audit_count']);
     }
 
-    public function test_memory_not_recorded_when_disabled(): void
+    #[Test]
+    public function memory_not_recorded_when_disabled(): void
     {
         config(['recordkeeper.commands.metrics.memory' => false]);
 
@@ -106,7 +116,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertArrayNotHasKey('memory_peak_mb', $audit->context);
     }
 
-    public function test_audit_count_not_recorded_when_disabled(): void
+    #[Test]
+    public function audit_count_not_recorded_when_disabled(): void
     {
         config(['recordkeeper.commands.metrics.audit_count' => false]);
 
@@ -117,7 +128,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertArrayNotHasKey('audit_count', $audit->context);
     }
 
-    public function test_non_zero_exit_code_is_recorded(): void
+    #[Test]
+    public function non_zero_exit_code_is_recorded(): void
     {
         $this->fireCommand('cache:clear', 1);
 
@@ -126,7 +138,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(1, $audit->context['exit_code']);
     }
 
-    public function test_audit_count_counts_only_audits_created_during_command(): void
+    #[Test]
+    public function audit_count_counts_only_audits_created_during_command(): void
     {
         Audit::create([
             'event' => 'updated',
@@ -150,7 +163,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(2, $audit->context['audit_count']);
     }
 
-    public function test_audit_count_excludes_command_finished_events(): void
+    #[Test]
+    public function audit_count_excludes_command_finished_events(): void
     {
         $input = new StringInput('');
         $output = new NullOutput;
@@ -167,7 +181,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(1, $audit->context['audit_count']);
     }
 
-    public function test_audit_count_is_zero_when_no_audits_created_during_command(): void
+    #[Test]
+    public function audit_count_is_zero_when_no_audits_created_during_command(): void
     {
         $this->fireCommand('cache:clear', 0);
 
@@ -176,7 +191,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertSame(0, $audit->context['audit_count']);
     }
 
-    public function test_anomaly_flagged_when_audit_count_spikes(): void
+    #[Test]
+    public function anomaly_flagged_when_audit_count_spikes(): void
     {
         config([
             'recordkeeper.commands.metrics.anomaly' => true,
@@ -215,7 +231,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertStringContainsString('audit_count', $audit->context['anomaly_reason']);
     }
 
-    public function test_anomaly_not_flagged_without_enough_history(): void
+    #[Test]
+    public function anomaly_not_flagged_without_enough_history(): void
     {
         config([
             'recordkeeper.commands.metrics.anomaly' => true,
@@ -229,7 +246,8 @@ final class CommandAuditingTest extends TestCase
         $this->assertArrayNotHasKey('anomaly', $audit->context);
     }
 
-    public function test_anomaly_not_flagged_when_disabled(): void
+    #[Test]
+    public function anomaly_not_flagged_when_disabled(): void
     {
         config(['recordkeeper.commands.metrics.anomaly' => false]);
 

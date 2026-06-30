@@ -6,10 +6,12 @@ namespace LaraArabDev\Recordkeeper\Tests\Unit;
 
 use LaraArabDev\Recordkeeper\Resolvers\ApiActorResolver;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ApiActorResolverTest extends TestCase
 {
-    public function test_returns_null_when_no_user_authenticated(): void
+    #[Test]
+    public function returns_null_when_no_user_authenticated(): void
     {
         // Default config has 'web' and 'api' guards; no user is authenticated
         // so the resolver should return null via the Auth::user() fallback.
@@ -18,7 +20,8 @@ class ApiActorResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_returns_null_when_only_web_guard_configured(): void
+    #[Test]
+    public function returns_null_when_only_web_guard_configured(): void
     {
         // web guard is explicitly skipped; no other guards → falls through to
         // Auth::user() which returns null in tests.
@@ -29,7 +32,8 @@ class ApiActorResolverTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_returns_null_when_api_guard_has_no_user(): void
+    #[Test]
+    public function returns_null_when_api_guard_has_no_user(): void
     {
         // api token guard exists but no authenticated user.
         config(['auth.guards' => array_merge(

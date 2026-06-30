@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Http\Middleware\AuditApi;
 use LaraArabDev\Recordkeeper\Http\Middleware\AuditRoute;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class RouteAuditingTest extends TestCase
 {
@@ -22,7 +23,8 @@ class RouteAuditingTest extends TestCase
         Route::middleware([AuditRoute::class.':sample=0'])->get('/test-sample', fn () => response()->json(['ok' => true]));
     }
 
-    public function test_web_route_hit_is_recorded_with_status(): void
+    #[Test]
+    public function web_route_hit_is_recorded_with_status(): void
     {
         $this->get('/test-web')->assertOk();
 
@@ -33,7 +35,8 @@ class RouteAuditingTest extends TestCase
         $this->assertSame('web', $audit->guard);
     }
 
-    public function test_route_body_sensitive_fields_redacted(): void
+    #[Test]
+    public function route_body_sensitive_fields_redacted(): void
     {
         $this->post('/test-body', ['name' => 'John', 'password' => 'secret123'])->assertOk();
 
@@ -44,7 +47,8 @@ class RouteAuditingTest extends TestCase
         $this->assertSame('John', $newValues['name'] ?? null);
     }
 
-    public function test_api_route_recorded_under_api_guard(): void
+    #[Test]
+    public function api_route_recorded_under_api_guard(): void
     {
         $this->get('/test-api')->assertOk();
 
@@ -52,7 +56,8 @@ class RouteAuditingTest extends TestCase
         $this->assertSame('api', $audit->guard);
     }
 
-    public function test_sampling_skips_some_hits(): void
+    #[Test]
+    public function sampling_skips_some_hits(): void
     {
         // sample=0 means never record
         $this->get('/test-sample')->assertOk();

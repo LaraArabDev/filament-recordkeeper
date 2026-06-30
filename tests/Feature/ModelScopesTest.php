@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\Support\AttributeResolver;
 use LaraArabDev\Recordkeeper\Tests\Fixtures\Order;
 use LaraArabDev\Recordkeeper\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Tests for the local query scopes added to the Audit model.
@@ -45,7 +46,8 @@ class ModelScopesTest extends TestCase
     // forGuard
     // ------------------------------------------------------------------
 
-    public function test_scope_for_guard_filters_by_guard_column(): void
+    #[Test]
+    public function scope_for_guard_filters_by_guard_column(): void
     {
         $this->makeRouteAudit('web');
         $this->makeRouteAudit('api');
@@ -56,7 +58,8 @@ class ModelScopesTest extends TestCase
         $this->assertCount(1, Audit::forGuard('admin')->get());
     }
 
-    public function test_scope_for_guard_returns_empty_for_unknown_guard(): void
+    #[Test]
+    public function scope_for_guard_returns_empty_for_unknown_guard(): void
     {
         $this->makeRouteAudit('web');
 
@@ -67,7 +70,8 @@ class ModelScopesTest extends TestCase
     // forModel
     // ------------------------------------------------------------------
 
-    public function test_scope_for_model_by_short_name(): void
+    #[Test]
+    public function scope_for_model_by_short_name(): void
     {
         Order::create(['status' => 'pending']);
         $this->makeRouteAudit('web');
@@ -77,7 +81,8 @@ class ModelScopesTest extends TestCase
         $this->assertTrue($results->every(fn ($a) => $a->auditable_type === Order::class));
     }
 
-    public function test_scope_for_model_by_fqcn(): void
+    #[Test]
+    public function scope_for_model_by_fqcn(): void
     {
         Order::create(['status' => 'pending']);
 
@@ -90,7 +95,8 @@ class ModelScopesTest extends TestCase
     // forSubject
     // ------------------------------------------------------------------
 
-    public function test_scope_for_subject_returns_only_that_record(): void
+    #[Test]
+    public function scope_for_subject_returns_only_that_record(): void
     {
         $a = Order::create(['status' => 'a']);
         $b = Order::create(['status' => 'b']);
@@ -106,7 +112,8 @@ class ModelScopesTest extends TestCase
     // forActorType
     // ------------------------------------------------------------------
 
-    public function test_scope_for_actor_type_by_short_name(): void
+    #[Test]
+    public function scope_for_actor_type_by_short_name(): void
     {
         $this->makeRouteAudit('admin', 'App\\Models\\Admin', 1);
         $this->makeRouteAudit('web', 'App\\Models\\User', 2);
@@ -117,7 +124,8 @@ class ModelScopesTest extends TestCase
         $this->assertTrue($adminAudits->every(fn ($a) => str_contains((string) $a->user_type, 'Admin')));
     }
 
-    public function test_scope_for_actor_type_by_fqcn(): void
+    #[Test]
+    public function scope_for_actor_type_by_fqcn(): void
     {
         $this->makeRouteAudit('admin', 'App\\Models\\Admin', 1);
 
@@ -130,7 +138,8 @@ class ModelScopesTest extends TestCase
     // forActor (polymorphic: model instance or id+type)
     // ------------------------------------------------------------------
 
-    public function test_scope_for_actor_with_model_instance(): void
+    #[Test]
+    public function scope_for_actor_with_model_instance(): void
     {
         $order = Order::create(['status' => 'pending']);
 
@@ -155,7 +164,8 @@ class ModelScopesTest extends TestCase
         ));
     }
 
-    public function test_scope_for_actor_with_id_only(): void
+    #[Test]
+    public function scope_for_actor_with_id_only(): void
     {
         $this->makeRouteAudit('api', 'App\\Models\\User', 42);
         $this->makeRouteAudit('api', 'App\\Models\\User', 99);
@@ -169,7 +179,8 @@ class ModelScopesTest extends TestCase
     // forBatch
     // ------------------------------------------------------------------
 
-    public function test_scope_for_batch_returns_only_that_batch(): void
+    #[Test]
+    public function scope_for_batch_returns_only_that_batch(): void
     {
         Recordkeeper::batch('import-x', function (): void {
             Order::create(['status' => 'x']);
@@ -187,7 +198,8 @@ class ModelScopesTest extends TestCase
     // rollbackable
     // ------------------------------------------------------------------
 
-    public function test_scope_rollbackable_excludes_route_events(): void
+    #[Test]
+    public function scope_rollbackable_excludes_route_events(): void
     {
         Order::create(['status' => 'pending']);
         $this->makeRouteAudit('web');
@@ -198,7 +210,8 @@ class ModelScopesTest extends TestCase
         $this->assertTrue($results->contains(fn ($a) => $a->event === 'created'));
     }
 
-    public function test_scope_rollbackable_includes_model_events(): void
+    #[Test]
+    public function scope_rollbackable_includes_model_events(): void
     {
         $order = Order::create(['status' => 'pending']);
         $order->update(['status' => 'active']);
@@ -215,7 +228,8 @@ class ModelScopesTest extends TestCase
     // routeHits
     // ------------------------------------------------------------------
 
-    public function test_scope_route_hits_returns_only_route_events(): void
+    #[Test]
+    public function scope_route_hits_returns_only_route_events(): void
     {
         Order::create(['status' => 'pending']);
         $this->makeRouteAudit('api');
@@ -231,7 +245,8 @@ class ModelScopesTest extends TestCase
     // Combining scopes
     // ------------------------------------------------------------------
 
-    public function test_scopes_are_composable(): void
+    #[Test]
+    public function scopes_are_composable(): void
     {
         $this->makeRouteAudit('api', 'App\\Models\\Admin', 7);
         $this->makeRouteAudit('api', 'App\\Models\\User', 8);
