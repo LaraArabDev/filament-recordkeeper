@@ -326,4 +326,21 @@ class AuditQueryTest extends TestCase
         $this->assertGreaterThan(0, $results->count());
         $this->assertTrue($results->every(fn ($a) => $a->user_type === 'App\\Models\\Admin'));
     }
+
+    #[Test]
+    public function tag_filter_matches_tag_in_middle_of_string(): void
+    {
+        Audit::create([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+            'tags' => 'finance,billing,accounting',
+        ]);
+
+        $results = (new AuditQuery)->tag(['billing'])->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => str_contains((string) $a->tags, 'billing')));
+    }
 }
