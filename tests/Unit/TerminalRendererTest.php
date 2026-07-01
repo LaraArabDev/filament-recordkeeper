@@ -226,6 +226,32 @@ class TerminalRendererTest extends TestCase
 
         $this->assertSame('batch-abc', $row['batch']);
         $this->assertStringContainsString('status', $row['changed']);
-        $this->assertArrayHasKey('created', $row);
+        $this->assertNotSame('', $row['created']);
+    }
+
+    #[Test]
+    public function diff_formats_array_value_as_json(): void
+    {
+        $audit = new Audit;
+        $audit->forceFill([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'auditable_id' => null,
+            'old_values' => ['tags' => ['a', 'b']],
+            'new_values' => ['tags' => ['a', 'b', 'c']],
+            'user_type' => null,
+            'user_id' => null,
+            'batch_id' => null,
+            'context' => [],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        ob_start();
+        TerminalRenderer::diff($audit);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('["a","b"]', $output);
+        $this->assertStringContainsString('["a","b","c"]', $output);
     }
 }
