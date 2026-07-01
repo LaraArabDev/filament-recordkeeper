@@ -77,12 +77,9 @@ final class TerminalRenderer
     public static function csv(array $headers, array $rows): void
     {
         $out = fopen('php://output', 'w');
-        if ($out === false) {
-            return;
-        }
         fputcsv($out, $headers);
         foreach ($rows as $row) {
-            fputcsv($out, array_values($row));
+            fputcsv($out, $row);
         }
         fclose($out);
     }
@@ -92,9 +89,9 @@ final class TerminalRenderer
         return [
             'id' => $audit->id,
             'event' => $audit->event,
-            'subject' => class_basename((string) $audit->auditable_type).' #'.$audit->auditable_id,
+            'subject' => class_basename($audit->auditable_type).' #'.$audit->auditable_id,
             'actor' => $audit->user_id
-                ? (class_basename((string) ($audit->user_type ?? 'User')).' #'.$audit->user_id)
+                ? (class_basename($audit->user_type ?? 'User').' #'.$audit->user_id)
                 : 'system',
             'changed' => implode(', ', array_keys($audit->getModified() ?? [])),
             'batch' => $audit->batch_id ?? '',

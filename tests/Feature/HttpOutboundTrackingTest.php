@@ -324,6 +324,34 @@ final class HttpOutboundTrackingTest extends TestCase
         $this->assertNotNull(AuditHttpRequest::first()->created_at);
     }
 
+    #[Test]
+    public function response_without_prior_sending_records_null_duration(): void
+    {
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $response = $this->makeResponse(200);
+
+        event(new ResponseReceived($request, $response));
+
+        $record = AuditHttpRequest::first();
+
+        $this->assertNotNull($record);
+        $this->assertNull($record->duration_ms);
+    }
+
+    #[Test]
+    public function failed_connection_without_prior_sending_records_null_duration(): void
+    {
+        $request = $this->makeRequest('GET', 'https://api.stripe.com/v1/charges');
+        $exception = new ConnectionException('refused');
+
+        event(new ConnectionFailed($request, $exception));
+
+        $record = AuditHttpRequest::first();
+
+        $this->assertNotNull($record);
+        $this->assertNull($record->duration_ms);
+    }
+
     private function makeRequest(string $method, string $url, array $headers = []): Request
     {
         $psrRequest = new \GuzzleHttp\Psr7\Request(

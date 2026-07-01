@@ -140,10 +140,13 @@ class ConsoleEdgeCasesTest extends TestCase
             'auditable_type' => 'route',
             'old_values' => [],
             'new_values' => [],
-            'context' => ['route' => '/test', 'duration_ms' => 42],
+            'context' => ['route' => '/test', 'duration_ms' => 42, 'tags' => ['a', 'b']],
         ]);
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
+            ->expectsOutputToContain('Context:')
+            ->expectsOutputToContain('/test')
+            ->expectsOutputToContain('["a","b"]')
             ->assertExitCode(0);
     }
 
@@ -159,6 +162,7 @@ class ConsoleEdgeCasesTest extends TestCase
         ]);
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
+            ->expectsOutputToContain('show-batch')
             ->assertExitCode(0);
     }
 

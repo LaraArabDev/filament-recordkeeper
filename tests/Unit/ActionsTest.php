@@ -255,6 +255,100 @@ class ActionsTest extends TestCase
         $this->assertNotNull(Order::find($order->id));
     }
 
+    #[Test]
+    public function search_filters_by_subject_id(): void
+    {
+        $order1 = Order::create(['status' => 'a']);
+        $order2 = Order::create(['status' => 'b']);
+
+        $results = app(SearchAudits::class)(['model' => 'Order', 'subject_id' => $order1->id]);
+
+        $this->assertGreaterThanOrEqual(1, $results->count());
+        foreach ($results as $audit) {
+            $this->assertSame((string) $order1->id, (string) $audit->auditable_id);
+        }
+    }
+
+    #[Test]
+    public function search_filters_by_tag(): void
+    {
+        Audit::create([
+            'event' => 'created',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+            'tags' => 'finance',
+        ]);
+        Order::create(['status' => 'ok']);
+
+        $results = app(SearchAudits::class)(['tag' => 'finance']);
+
+        $this->assertCount(1, $results);
+        $this->assertStringContainsString('finance', $results->first()->tags);
+    }
+
+    #[Test]
+    public function search_filters_by_since(): void
+    {
+        Order::create(['status' => 'now']);
+
+        $results = app(SearchAudits::class)(['since' => now()->subMinute()]);
+
+        $this->assertGreaterThanOrEqual(1, $results->count());
+    }
+
+    #[Test]
+    public function search_filters_by_q(): void
+    {
+        Order::create(['status' => 'pending']);
+
+        $results = app(SearchAudits::class)(['q' => 'Order']);
+
+        $this->assertGreaterThanOrEqual(1, $results->count());
+    }
+
+    #[Test]
+    public function search_filters_by_user(): void
+    {
+        Audit::create([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+            'user_id' => 42,
+            'user_type' => 'App\\Models\\User',
+        ]);
+        Order::create(['status' => 'ok']);
+
+        $results = app(SearchAudits::class)(['user' => 42, 'user_type' => 'App\\Models\\User']);
+
+        $this->assertGreaterThanOrEqual(1, $results->count());
+        foreach ($results as $a) {
+            $this->assertSame(42, (int) $a->user_id);
+        }
+    }
+
+    #[Test]
+    public function search_filters_by_user_type_only(): void
+    {
+        Audit::create([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+            'user_id' => 99,
+            'user_type' => 'App\\Models\\Admin',
+        ]);
+        Order::create(['status' => 'ok']);
+
+        $results = app(SearchAudits::class)(['user_type' => 'App\\Models\\Admin']);
+
+        $this->assertGreaterThanOrEqual(1, $results->count());
+        foreach ($results as $a) {
+            $this->assertSame('App\\Models\\Admin', $a->user_type);
+        }
+    }
+
     // ── SearchAudits guard filter ─────────────────────────────────────────
     #[Test]
     public function search_filters_by_guard(): void

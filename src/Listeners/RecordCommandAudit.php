@@ -8,7 +8,9 @@ use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Events\Dispatcher;
+use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Attributes\AuditCommand;
+use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
 final class RecordCommandAudit
@@ -18,6 +20,8 @@ final class RecordCommandAudit
 
     /** @var array<string, int> */
     private static array $startMaxIds = [];
+
+    public function __construct(private readonly RecordAudit $recordAudit) {}
 
     /** @return array<string, string> */
     public function subscribe(Dispatcher $events): array
@@ -79,19 +83,15 @@ final class RecordCommandAudit
             }
         }
 
-        $audit = new Audit;
-        $audit->fill([
-            'event' => 'command.finished',
-            'auditable_type' => 'command',
-            'auditable_id' => null,
-            'old_values' => [],
-            'new_values' => [],
-            'user_type' => null,
-            'user_id' => null,
-            'tags' => implode(',', $attr?->tags ?? []),
-            'context' => $context,
-        ]);
-        $audit->save();
+        ($this->recordAudit)(new AuditPayload(
+            event: 'command.finished',
+            auditableType: 'command',
+            auditableId: null,
+            oldValues: [],
+            newValues: [],
+            tags: implode(',', $attr?->tags ?? []),
+            context: $context,
+        ));
     }
 
     private function shouldAudit(?string $command): bool

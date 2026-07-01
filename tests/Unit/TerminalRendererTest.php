@@ -226,6 +226,81 @@ class TerminalRendererTest extends TestCase
 
         $this->assertSame('batch-abc', $row['batch']);
         $this->assertStringContainsString('status', $row['changed']);
-        $this->assertArrayHasKey('created', $row);
+        $this->assertNotSame('', $row['created']);
+    }
+
+    #[Test]
+    public function audit_to_row_formats_actor_with_type_and_id(): void
+    {
+        $audit = $this->savedAudit([
+            'user_type' => Order::class,
+            'user_id' => 42,
+            'new_values' => ['status' => 'ok'],
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('Order #42', $row['actor']);
+    }
+
+    #[Test]
+    public function audit_to_row_formats_actor_with_null_type_defaults_to_user(): void
+    {
+        $audit = $this->savedAudit([
+            'user_type' => null,
+            'user_id' => 7,
+            'new_values' => ['status' => 'ok'],
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('User #7', $row['actor']);
+    }
+
+    #[Test]
+    public function audit_to_row_created_returns_empty_string_when_created_at_is_null(): void
+    {
+        $audit = \Mockery::mock(Audit::class)->makePartial();
+        $audit->shouldReceive('getModified')->andReturn([]);
+        $audit->forceFill([
+            'id' => 1,
+            'event' => 'created',
+            'auditable_type' => 'system',
+            'auditable_id' => null,
+            'user_type' => null,
+            'user_id' => null,
+            'batch_id' => null,
+            'created_at' => null,
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('', $row['created']);
+    }
+
+    #[Test]
+    public function diff_formats_array_value_as_json(): void
+    {
+        $audit = new Audit;
+        $audit->forceFill([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'auditable_id' => null,
+            'old_values' => ['tags' => ['a', 'b']],
+            'new_values' => ['tags' => ['a', 'b', 'c']],
+            'user_type' => null,
+            'user_id' => null,
+            'batch_id' => null,
+            'context' => [],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        ob_start();
+        TerminalRenderer::diff($audit);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('["a","b"]', $output);
+        $this->assertStringContainsString('["a","b","c"]', $output);
     }
 }

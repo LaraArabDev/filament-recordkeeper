@@ -10,4 +10,8 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 interface AuditDriver
 {
     public function persist(AuditPayload $payload): Audit;
+
+    public function find(int|string $id): ?Audit;
+
+    public function flush(): void;
 }

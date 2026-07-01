@@ -28,6 +28,15 @@ class PlainObjectEvent
     public string $data = 'test';
 }
 
+#[AuditEvent(capturePayload: true)]
+class CapturedPlainObjectEvent
+{
+    public int $value = 99;
+}
+
+#[AuditEvent(tags: ['user', 'auth'])]
+class MultiTagEvent {}
+
 final class EventAuditingTest extends TestCase
 {
     #[Test]
@@ -121,6 +130,42 @@ final class EventAuditingTest extends TestCase
 
         $audit = Audit::where('event', 'event.PlainObjectEvent')->first();
         $this->assertNotNull($audit);
+        $this->assertArrayNotHasKey('payload', $audit->context);
+    }
+
+    #[Test]
+    public function config_listed_event_does_not_capture_payload(): void
+    {
+        config(['recordkeeper.listen' => [NonAuditedLaravelEvent::class]]);
+
+        event(new NonAuditedLaravelEvent);
+
+        $audit = Audit::where('event', 'like', 'event.%')->first();
+        $this->assertNotNull($audit);
+        $this->assertArrayNotHasKey('payload', $audit->context);
+    }
+
+    #[Test]
+    public function event_multi_tags_stored_as_comma_separated(): void
+    {
+        event(new MultiTagEvent);
+
+        $audit = Audit::where('event', 'event.MultiTagEvent')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('user,auth', $audit->tags);
+    }
+
+    #[Test]
+    public function payload_serializes_plain_object_via_get_object_vars_with_capture(): void
+    {
+        event(new CapturedPlainObjectEvent);
+
+        $audit = Audit::where('event', 'event.CapturedPlainObjectEvent')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertArrayHasKey('payload', $audit->context);
+        $this->assertSame(99, $audit->context['payload'][0]['value']);
     }
 
     #[Test]

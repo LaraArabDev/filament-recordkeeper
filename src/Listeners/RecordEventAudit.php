@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace LaraArabDev\Recordkeeper\Listeners;
 
+use LaraArabDev\Recordkeeper\Actions\RecordAudit;
 use LaraArabDev\Recordkeeper\Attributes\AuditEvent;
-use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\Recordkeeper\DataObjects\AuditPayload;
 
 final class RecordEventAudit
 {
+    public function __construct(private readonly RecordAudit $recordAudit) {}
+
     public function handle(string $eventName, array $payload): void
     {
         if (! config('recordkeeper.enabled', true)) {
@@ -37,19 +40,15 @@ final class RecordEventAudit
             $context['payload'] = $this->serializePayload($payload);
         }
 
-        $audit = new Audit;
-        $audit->fill([
-            'event' => 'event.'.class_basename($eventClass),
-            'auditable_type' => 'event',
-            'auditable_id' => null,
-            'old_values' => [],
-            'new_values' => [],
-            'user_type' => null,
-            'user_id' => null,
-            'tags' => implode(',', $attr?->tags ?? []),
-            'context' => $context,
-        ]);
-        $audit->save();
+        ($this->recordAudit)(new AuditPayload(
+            event: 'event.'.class_basename($eventClass),
+            auditableType: 'event',
+            auditableId: null,
+            oldValues: [],
+            newValues: [],
+            tags: implode(',', $attr?->tags ?? []),
+            context: $context,
+        ));
     }
 
     private function attribute(string $eventClass): ?AuditEvent

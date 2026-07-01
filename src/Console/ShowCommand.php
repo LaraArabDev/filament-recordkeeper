@@ -34,9 +34,9 @@ class ShowCommand extends Command
         $this->newLine();
         $this->line("  <comment>Audit #{$audit->id}</comment>");
         $this->line("  Event:   <info>{$audit->event}</info>");
-        $this->line('  Subject: '.class_basename((string) $audit->auditable_type)." #{$audit->auditable_id}");
+        $this->line('  Subject: '.class_basename($audit->auditable_type)." #{$audit->auditable_id}");
         $this->line('  Actor:   '.($audit->user_id ? "{$audit->user_type} #{$audit->user_id}" : 'system'));
-        $this->line('  Guard:   '.(isset($audit->context['guard']) ? $audit->context['guard'] : 'n/a'));
+        $this->line('  Guard:   '.($audit->context['guard'] ?? 'n/a'));
         $this->line('  Batch:   '.($audit->batch_id ?? 'n/a'));
         $this->line('  Time:    '.$audit->created_at?->toIso8601String());
         $this->newLine();
