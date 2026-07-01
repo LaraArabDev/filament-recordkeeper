@@ -328,6 +328,29 @@ class AuditQueryTest extends TestCase
     }
 
     #[Test]
+    public function events_filter(): void
+    {
+        Audit::create([
+            'event' => 'event.user.registered',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+
+        Audit::create([
+            'event' => 'updated',
+            'auditable_type' => 'system',
+            'old_values' => [],
+            'new_values' => [],
+        ]);
+
+        $results = (new AuditQuery)->events()->builder()->get();
+
+        $this->assertGreaterThan(0, $results->count());
+        $this->assertTrue($results->every(fn ($a) => str_starts_with($a->event, 'event.')));
+    }
+
+    #[Test]
     public function tag_filter_matches_tag_in_middle_of_string(): void
     {
         Audit::create([

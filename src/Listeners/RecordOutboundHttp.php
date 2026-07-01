@@ -61,7 +61,7 @@ final class RecordOutboundHttp
         if (config('recordkeeper.http.capture_body', false)) {
             $limit = (int) config('recordkeeper.http.body_limit', 1000);
             $body = $event->response->body();
-            $data['response_body'] = strlen($body) > $limit ? substr($body, 0, $limit) : $body;
+            $data['response_body'] = substr($body, 0, $limit);
         }
 
         $this->persist($data);
@@ -104,7 +104,7 @@ final class RecordOutboundHttp
 
     private function shouldRecord(string $url): bool
     {
-        $host = parse_url($url, PHP_URL_HOST) ?? '';
+        $host = (string) parse_url($url, PHP_URL_HOST);
         $excluded = config('recordkeeper.http.exclude_hosts', []);
 
         return ! in_array($host, $excluded, true);
