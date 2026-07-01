@@ -229,6 +229,35 @@ final class CommandAuditingTest extends TestCase
         $this->assertTrue($audit->context['anomaly'] ?? false);
         $this->assertArrayHasKey('anomaly_reason', $audit->context);
         $this->assertStringContainsString('audit_count', $audit->context['anomaly_reason']);
+        $this->assertStringContainsString('3 >', $audit->context['anomaly_reason']);
+        $this->assertStringContainsString('avg (1)', $audit->context['anomaly_reason']);
+        $this->assertStringNotContainsString('duration', $audit->context['anomaly_reason']);
+    }
+
+    #[Test]
+    public function anomaly_not_flagged_when_no_spike(): void
+    {
+        config([
+            'recordkeeper.commands.metrics.anomaly' => true,
+            'recordkeeper.commands.metrics.anomaly_min_runs' => 3,
+            'recordkeeper.commands.metrics.anomaly_multiplier' => 100.0,
+        ]);
+
+        foreach (range(1, 3) as $i) {
+            Audit::create([
+                'event' => 'command.finished',
+                'auditable_type' => 'command',
+                'old_values' => [],
+                'new_values' => [],
+                'context' => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 10, 'audit_count' => 100],
+            ]);
+        }
+
+        $this->fireCommand('cache:clear', 0);
+
+        $recent = Audit::where('event', 'command.finished')->latest()->first();
+
+        $this->assertArrayNotHasKey('anomaly', $recent->context);
     }
 
     #[Test]
@@ -244,6 +273,32 @@ final class CommandAuditingTest extends TestCase
         $audit = Audit::where('event', 'command.finished')->first();
 
         $this->assertArrayNotHasKey('anomaly', $audit->context);
+    }
+
+    #[Test]
+    public function duration_anomaly_not_flagged_when_avg_duration_is_zero(): void
+    {
+        config([
+            'recordkeeper.commands.metrics.anomaly' => true,
+            'recordkeeper.commands.metrics.anomaly_min_runs' => 3,
+            'recordkeeper.commands.metrics.anomaly_multiplier' => 1.5,
+        ]);
+
+        foreach (range(1, 3) as $i) {
+            Audit::create([
+                'event' => 'command.finished',
+                'auditable_type' => 'command',
+                'old_values' => [],
+                'new_values' => [],
+                'context' => ['command' => 'cache:clear', 'exit_code' => 0, 'duration_ms' => 0, 'audit_count' => 0],
+            ]);
+        }
+
+        $this->fireCommand('cache:clear', 0);
+
+        $recent = Audit::where('event', 'command.finished')->latest()->first();
+
+        $this->assertArrayNotHasKey('anomaly', $recent->context);
     }
 
     #[Test]

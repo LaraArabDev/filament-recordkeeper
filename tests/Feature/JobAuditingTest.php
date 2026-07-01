@@ -7,6 +7,7 @@ namespace LaraArabDev\Recordkeeper\Tests\Feature;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use LaraArabDev\Recordkeeper\Attributes\AuditJob;
 use LaraArabDev\Recordkeeper\Models\Audit;
@@ -20,6 +21,21 @@ class AuditedJob
 }
 
 class NonAuditedJob {}
+
+#[AuditJob(queued: false)]
+class QueuedDisabledJob {}
+
+#[AuditJob(processing: false)]
+class ProcessingDisabledJob {}
+
+#[AuditJob(processed: false)]
+class ProcessedDisabledJob {}
+
+#[AuditJob(failed: false)]
+class FailedDisabledJob {}
+
+#[AuditJob(tags: ['billing'])]
+class TaggedJob {}
 
 final class JobAuditingTest extends TestCase
 {
@@ -39,6 +55,9 @@ final class JobAuditingTest extends TestCase
         $this->assertNotNull($audit);
         $this->assertSame('job', $audit->auditable_type);
         $this->assertSame(AuditedJob::class, $audit->context['job']);
+        $this->assertSame('sync', $audit->context['connection']);
+        $this->assertSame('default', $audit->context['queue']);
+        $this->assertSame(1, $audit->context['attempts']);
     }
 
     #[Test]
@@ -79,7 +98,74 @@ final class JobAuditingTest extends TestCase
 
         event(new JobQueued('sync', 'default', 'queued-id', $job, [], null));
 
-        $this->assertSame(1, Audit::where('event', 'job.queued')->count());
+        $audit = Audit::where('event', 'job.queued')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame(AuditedJob::class, $audit->context['job']);
+        $this->assertSame('sync', $audit->context['connection']);
+        $this->assertSame('default', $audit->context['queue']);
+    }
+
+    #[Test]
+    public function job_queued_queue_defaults_to_default_when_null(): void
+    {
+        $job = new AuditedJob;
+
+        event(new JobQueued('sync', null, 'queued-id', $job, [], null));
+
+        $audit = Audit::where('event', 'job.queued')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('default', $audit->context['queue']);
+    }
+
+    #[Test]
+    public function job_with_queued_false_is_not_audited_on_queue(): void
+    {
+        $job = new QueuedDisabledJob;
+
+        event(new JobQueued('sync', 'default', 'queued-id', $job, [], null));
+
+        $this->assertSame(0, Audit::where('event', 'job.queued')->count());
+    }
+
+    #[Test]
+    public function job_with_processing_false_is_not_audited_on_processing(): void
+    {
+        $job = $this->mockQueueJob(ProcessingDisabledJob::class);
+
+        event(new JobProcessing('sync', $job));
+
+        $this->assertSame(0, Audit::where('event', 'job.processing')->count());
+    }
+
+    #[Test]
+    public function job_with_processed_false_is_not_audited_on_complete(): void
+    {
+        $this->fireProcessed(ProcessedDisabledJob::class);
+
+        $this->assertSame(0, Audit::where('event', 'job.processed')->count());
+    }
+
+    #[Test]
+    public function job_with_failed_false_is_not_audited_on_failure(): void
+    {
+        config(['recordkeeper.jobs.enabled' => true]);
+
+        $this->fireFailed(FailedDisabledJob::class, 'error');
+
+        $this->assertSame(0, Audit::where('event', 'job.failed')->count());
+    }
+
+    #[Test]
+    public function job_tags_stored_on_processed_event(): void
+    {
+        $this->fireProcessed(TaggedJob::class);
+
+        $audit = Audit::where('event', 'job.processed')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('billing', $audit->tags);
     }
 
     #[Test]
@@ -93,6 +179,10 @@ final class JobAuditingTest extends TestCase
 
         $this->assertNotNull($audit);
         $this->assertSame('Something went wrong', $audit->context['exception']);
+        $this->assertSame(NonAuditedJob::class, $audit->context['job']);
+        $this->assertSame('sync', $audit->context['connection']);
+        $this->assertSame('default', $audit->context['queue']);
+        $this->assertSame(1, $audit->context['attempts']);
     }
 
     #[Test]
