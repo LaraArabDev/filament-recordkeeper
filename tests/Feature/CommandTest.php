@@ -81,6 +81,7 @@ class CommandTest extends TestCase
             ->expectsOutputToContain('Event:')
             ->expectsOutputToContain('Changes:')
             ->expectsOutputToContain('system')
+            ->expectsOutputToContain('n/a')
             ->assertExitCode(0);
     }
 

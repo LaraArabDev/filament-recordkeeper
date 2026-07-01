@@ -82,7 +82,7 @@ final class TerminalRenderer
         }
         fputcsv($out, $headers);
         foreach ($rows as $row) {
-            fputcsv($out, array_values($row));
+            fputcsv($out, $row);
         }
         fclose($out);
     }
