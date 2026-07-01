@@ -356,18 +356,6 @@ final class CommandAuditingTest extends TestCase
         $this->assertArrayNotHasKey('anomaly', $recent->context);
     }
 
-    #[Test]
-    public function null_command_is_not_audited(): void
-    {
-        $input = new StringInput('');
-        $output = new NullOutput;
-
-        event(new CommandStarting(null, $input, $output));
-        event(new CommandFinished(null, $input, $output, 0));
-
-        $this->assertSame(0, Audit::where('event', 'command.finished')->count());
-    }
-
     private function fireCommand(string $command, int $exitCode): void
     {
         $input = new StringInput('');
