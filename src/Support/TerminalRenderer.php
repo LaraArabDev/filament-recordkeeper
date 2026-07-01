@@ -77,9 +77,6 @@ final class TerminalRenderer
     public static function csv(array $headers, array $rows): void
     {
         $out = fopen('php://output', 'w');
-        if ($out === false) {
-            return;
-        }
         fputcsv($out, $headers);
         foreach ($rows as $row) {
             fputcsv($out, $row);

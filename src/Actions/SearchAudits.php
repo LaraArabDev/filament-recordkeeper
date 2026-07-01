@@ -25,7 +25,7 @@ final class SearchAudits
             $query->subjectId($filters['subject_id']);
         }
         if (! empty($filters['event'])) {
-            $query->event((array) $filters['event']);
+            $query->event($filters['event']);
         }
         if (! empty($filters['user'])) {
             $query->actor($filters['user'], $filters['user_type'] ?? null);
