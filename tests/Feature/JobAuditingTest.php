@@ -211,6 +211,42 @@ final class JobAuditingTest extends TestCase
     }
 
     #[Test]
+    public function job_queued_tags_stored(): void
+    {
+        $job = new TaggedJob;
+
+        event(new JobQueued('sync', 'default', 'queued-id', $job, [], null));
+
+        $audit = Audit::where('event', 'job.queued')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('billing', $audit->tags);
+    }
+
+    #[Test]
+    public function job_processing_tags_stored(): void
+    {
+        $job = $this->mockQueueJob(TaggedJob::class);
+        event(new JobProcessing('sync', $job));
+
+        $audit = Audit::where('event', 'job.processing')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('billing', $audit->tags);
+    }
+
+    #[Test]
+    public function job_failed_tags_stored(): void
+    {
+        $this->fireFailed(TaggedJob::class, 'error');
+
+        $audit = Audit::where('event', 'job.failed')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('billing', $audit->tags);
+    }
+
+    #[Test]
     public function job_not_audited_when_kill_switch_disabled(): void
     {
         config(['recordkeeper.enabled' => false]);
