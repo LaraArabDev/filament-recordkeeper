@@ -230,6 +230,55 @@ class TerminalRendererTest extends TestCase
     }
 
     #[Test]
+    public function audit_to_row_formats_actor_with_type_and_id(): void
+    {
+        $audit = $this->savedAudit([
+            'user_type' => Order::class,
+            'user_id' => 42,
+            'new_values' => ['status' => 'ok'],
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('Order #42', $row['actor']);
+    }
+
+    #[Test]
+    public function audit_to_row_formats_actor_with_null_type_defaults_to_user(): void
+    {
+        $audit = $this->savedAudit([
+            'user_type' => null,
+            'user_id' => 7,
+            'new_values' => ['status' => 'ok'],
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('User #7', $row['actor']);
+    }
+
+    #[Test]
+    public function audit_to_row_created_returns_empty_string_when_created_at_is_null(): void
+    {
+        $audit = \Mockery::mock(Audit::class)->makePartial();
+        $audit->shouldReceive('getModified')->andReturn([]);
+        $audit->forceFill([
+            'id' => 1,
+            'event' => 'created',
+            'auditable_type' => 'system',
+            'auditable_id' => null,
+            'user_type' => null,
+            'user_id' => null,
+            'batch_id' => null,
+            'created_at' => null,
+        ]);
+
+        $row = TerminalRenderer::auditToRow($audit);
+
+        $this->assertSame('', $row['created']);
+    }
+
+    #[Test]
     public function diff_formats_array_value_as_json(): void
     {
         $audit = new Audit;
