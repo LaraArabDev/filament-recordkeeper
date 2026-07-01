@@ -28,6 +28,12 @@ class PlainObjectEvent
     public string $data = 'test';
 }
 
+#[AuditEvent(capturePayload: true)]
+class CapturedPlainObjectEvent
+{
+    public int $value = 99;
+}
+
 final class EventAuditingTest extends TestCase
 {
     #[Test]
@@ -121,6 +127,18 @@ final class EventAuditingTest extends TestCase
 
         $audit = Audit::where('event', 'event.PlainObjectEvent')->first();
         $this->assertNotNull($audit);
+    }
+
+    #[Test]
+    public function payload_serializes_plain_object_via_get_object_vars_with_capture(): void
+    {
+        event(new CapturedPlainObjectEvent);
+
+        $audit = Audit::where('event', 'event.CapturedPlainObjectEvent')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertArrayHasKey('payload', $audit->context);
+        $this->assertSame(99, $audit->context['payload'][0]['value']);
     }
 
     #[Test]

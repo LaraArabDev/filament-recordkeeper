@@ -106,6 +106,42 @@ final class JobAuditingTest extends TestCase
         $this->assertSame(1, Audit::jobAudits()->count());
     }
 
+    #[Test]
+    public function job_class_resolved_from_display_name_when_name_has_no_namespace(): void
+    {
+        $mock = $this->createMock(Job::class);
+        $mock->method('getName')->willReturn('audited-job');
+        $mock->method('getRawBody')->willReturn(json_encode(['displayName' => AuditedJob::class]));
+        $mock->method('getQueue')->willReturn('default');
+        $mock->method('attempts')->willReturn(1);
+
+        event(new JobProcessed('sync', $mock));
+
+        $audit = Audit::where('event', 'job.processed')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame(AuditedJob::class, $audit->context['job']);
+    }
+
+    #[Test]
+    public function job_class_falls_back_to_name_when_display_name_absent(): void
+    {
+        config(['recordkeeper.jobs.enabled' => true]);
+
+        $mock = $this->createMock(Job::class);
+        $mock->method('getName')->willReturn('plain-job');
+        $mock->method('getRawBody')->willReturn(json_encode([]));
+        $mock->method('getQueue')->willReturn('default');
+        $mock->method('attempts')->willReturn(1);
+
+        event(new JobProcessed('sync', $mock));
+
+        $audit = Audit::where('event', 'job.processed')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('plain-job', $audit->context['job']);
+    }
+
     private function fireProcessed(string $jobClass): void
     {
         $job = $this->mockQueueJob($jobClass);
