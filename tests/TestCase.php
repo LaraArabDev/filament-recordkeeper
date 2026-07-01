@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Tests;
+namespace LaraArabDev\RecordkeeperFilament\Tests;
 
-use LaraArabDev\FilamentRecordkeeper\FilamentRecordkeeperServiceProvider;
+use LaraArabDev\RecordkeeperFilament\RecordkeeperFilamentServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
@@ -12,7 +12,7 @@ class TestCase extends BaseTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            FilamentRecordkeeperServiceProvider::class,
+            RecordkeeperFilamentServiceProvider::class,
         ];
     }
 }

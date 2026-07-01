@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper;
+namespace LaraArabDev\RecordkeeperFilament;
 
 use Illuminate\Support\ServiceProvider;
 use LaraArabDev\Recordkeeper\RecordkeeperServiceProvider as CoreServiceProvider;
 
-class FilamentRecordkeeperServiceProvider extends ServiceProvider
+class RecordkeeperFilamentServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -21,7 +21,7 @@ class FilamentRecordkeeperServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../resources/views' => resource_path('views/vendor/recordkeeper'),
-            ], 'filament-recordkeeper-views');
+            ], 'recordkeeper-filament-views');
         }
     }
 }

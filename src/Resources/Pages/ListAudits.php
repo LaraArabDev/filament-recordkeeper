@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Resources\Pages;
+namespace LaraArabDev\RecordkeeperFilament\Resources\Pages;
 
 use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use LaraArabDev\FilamentRecordkeeper\Resources\AuditResource;
+use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
 class ListAudits extends ListRecords

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Tests\Unit;
+namespace LaraArabDev\RecordkeeperFilament\Tests\Unit;
 
-use LaraArabDev\FilamentRecordkeeper\RecordkeeperPlugin;
-use LaraArabDev\FilamentRecordkeeper\Tests\TestCase;
+use LaraArabDev\RecordkeeperFilament\RecordkeeperPlugin;
+use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 class PluginTest extends TestCase

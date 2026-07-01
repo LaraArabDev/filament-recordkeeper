@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\RelationManagers;
+namespace LaraArabDev\RecordkeeperFilament\RelationManagers;
 
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Widgets;
+namespace LaraArabDev\RecordkeeperFilament\Widgets;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

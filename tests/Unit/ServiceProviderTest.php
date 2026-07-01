@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Tests\Unit;
+namespace LaraArabDev\RecordkeeperFilament\Tests\Unit;
 
-use LaraArabDev\FilamentRecordkeeper\Tests\TestCase;
+use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
 use LaraArabDev\Recordkeeper\Recordkeeper;
 use PHPUnit\Framework\Attributes\Test;
 

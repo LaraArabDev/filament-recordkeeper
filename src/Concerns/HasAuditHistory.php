@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Concerns;
+namespace LaraArabDev\RecordkeeperFilament\Concerns;
 
-use LaraArabDev\FilamentRecordkeeper\RelationManagers\AuditsRelationManager;
+use LaraArabDev\RecordkeeperFilament\RelationManagers\AuditsRelationManager;
 
 trait HasAuditHistory
 {

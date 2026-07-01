@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper;
+namespace LaraArabDev\RecordkeeperFilament;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use LaraArabDev\FilamentRecordkeeper\Resources\AuditResource;
-use LaraArabDev\FilamentRecordkeeper\Widgets\AuditStatsOverview;
-use LaraArabDev\FilamentRecordkeeper\Widgets\AuditTimeline;
+use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
+use LaraArabDev\RecordkeeperFilament\Widgets\AuditStatsOverview;
+use LaraArabDev\RecordkeeperFilament\Widgets\AuditTimeline;
 
 class RecordkeeperPlugin implements Plugin
 {

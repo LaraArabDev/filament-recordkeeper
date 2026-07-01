@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace LaraArabDev\FilamentRecordkeeper\Resources;
+namespace LaraArabDev\RecordkeeperFilament\Resources;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -20,8 +20,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use LaraArabDev\FilamentRecordkeeper\Resources\Pages\ListAudits;
-use LaraArabDev\FilamentRecordkeeper\Resources\Pages\ViewAudit;
+use LaraArabDev\RecordkeeperFilament\Resources\Pages\ListAudits;
+use LaraArabDev\RecordkeeperFilament\Resources\Pages\ViewAudit;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
 class AuditResource extends Resource
