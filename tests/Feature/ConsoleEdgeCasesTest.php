@@ -144,6 +144,8 @@ class ConsoleEdgeCasesTest extends TestCase
         ]);
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
+            ->expectsOutputToContain('Context:')
+            ->expectsOutputToContain('/test')
             ->assertExitCode(0);
     }
 
@@ -159,6 +161,7 @@ class ConsoleEdgeCasesTest extends TestCase
         ]);
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
+            ->expectsOutputToContain('show-batch')
             ->assertExitCode(0);
     }
 

@@ -62,6 +62,7 @@ class CommandTest extends TestCase
     public function search_command_returns_empty_json_array_when_no_results(): void
     {
         $this->artisan('recordkeeper:search', ['--json' => true])
+            ->expectsOutputToContain('[]')
             ->assertExitCode(0);
     }
 
@@ -76,6 +77,10 @@ class CommandTest extends TestCase
         $audit = Audit::first();
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id])
+            ->expectsOutputToContain("Audit #{$audit->id}")
+            ->expectsOutputToContain('Event:')
+            ->expectsOutputToContain('Changes:')
+            ->expectsOutputToContain('system')
             ->assertExitCode(0);
     }
 
@@ -86,6 +91,7 @@ class CommandTest extends TestCase
         $audit = Audit::first();
 
         $this->artisan('recordkeeper:show', ['id' => $audit->id, '--json' => true])
+            ->doesntExpectOutputToContain('Changes:')
             ->assertExitCode(0);
     }
 
@@ -93,6 +99,7 @@ class CommandTest extends TestCase
     public function show_command_fails_for_unknown_id(): void
     {
         $this->artisan('recordkeeper:show', ['id' => 99999])
+            ->expectsOutputToContain('not found')
             ->assertExitCode(1);
     }
 
@@ -230,6 +237,7 @@ class CommandTest extends TestCase
     public function search_command_empty_result_non_json(): void
     {
         $this->artisan('recordkeeper:search', ['--format' => 'table'])
+            ->expectsOutputToContain('No audit records found')
             ->assertExitCode(0);
     }
 

@@ -37,6 +37,9 @@ class FailedDisabledJob {}
 #[AuditJob(tags: ['billing'])]
 class TaggedJob {}
 
+#[AuditJob(tags: ['billing', 'payments'])]
+class MultiTaggedJob {}
+
 final class JobAuditingTest extends TestCase
 {
     protected function defineEnvironment($app): void
@@ -169,6 +172,17 @@ final class JobAuditingTest extends TestCase
     }
 
     #[Test]
+    public function job_multi_tags_stored_as_comma_separated(): void
+    {
+        $this->fireProcessed(MultiTaggedJob::class);
+
+        $audit = Audit::where('event', 'job.processed')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('billing,payments', $audit->tags);
+    }
+
+    #[Test]
     public function job_failed_context_includes_exception(): void
     {
         config(['recordkeeper.jobs.enabled' => true]);
@@ -194,6 +208,30 @@ final class JobAuditingTest extends TestCase
         Audit::create(['event' => 'updated', 'auditable_type' => 'system', 'old_values' => [], 'new_values' => []]);
 
         $this->assertSame(1, Audit::jobAudits()->count());
+    }
+
+    #[Test]
+    public function job_not_audited_when_kill_switch_disabled(): void
+    {
+        config(['recordkeeper.enabled' => false]);
+
+        $this->fireProcessed(AuditedJob::class);
+
+        $this->assertSame(0, Audit::where('event', 'job.processed')->count());
+    }
+
+    #[Test]
+    public function job_processing_event_creates_audit(): void
+    {
+        $job = $this->mockQueueJob(AuditedJob::class);
+        event(new JobProcessing('sync', $job));
+
+        $audit = Audit::where('event', 'job.processing')->first();
+
+        $this->assertNotNull($audit);
+        $this->assertSame('job', $audit->auditable_type);
+        $this->assertSame(AuditedJob::class, $audit->context['job']);
+        $this->assertSame('sync', $audit->context['connection']);
     }
 
     #[Test]
