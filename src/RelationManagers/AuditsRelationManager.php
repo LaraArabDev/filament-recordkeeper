@@ -10,14 +10,24 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Relation manager that renders the audit history table for an Eloquent record. */
 class AuditsRelationManager extends RelationManager
 {
+    /** @var string Eloquent relationship name on the owner model. */
     protected static string $relationship = 'audits';
 
+    /** @var string|null Display title shown in the relation manager tab. */
     protected static ?string $title = 'History';
 
+    /** @var string|\BackedEnum|null Heroicon shown in the relation manager tab. */
     protected static string|\BackedEnum|null $icon = 'heroicon-o-clock';
 
+    /**
+     * Build the audit history table with event badges, actor column, and rollback action.
+     *
+     * @param  Table  $table
+     * @return Table
+     */
     public function table(Table $table): Table
     {
         return $table

@@ -9,12 +9,21 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Dashboard widget showing the 20 most recent audit entries in a non-paginated table. */
 class AuditTimeline extends TableWidget
 {
+    /** @var int|null Widget sort order on the dashboard. */
     protected static ?int $sort = 99;
 
+    /** @var int|string|array<int, int|string> Column span across the dashboard grid. */
     protected int|string|array $columnSpan = 'full';
 
+    /**
+     * Build the recent-activity table limited to the latest 20 audit records.
+     *
+     * @param  Table  $table
+     * @return Table
+     */
     public function table(Table $table): Table
     {
         return $table

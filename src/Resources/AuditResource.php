@@ -24,37 +24,72 @@ use LaraArabDev\RecordkeeperFilament\Resources\Pages\ListAudits;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ViewAudit;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Filament resource providing list, filter, and detail views for audit records. */
 class AuditResource extends Resource
 {
+    /** @var string|null Eloquent model class managed by this resource. */
     protected static ?string $model = Audit::class;
 
+    /** @var string|null URL slug used for resource routes. */
     protected static ?string $slug = 'audits';
 
+    /**
+     * Return the navigation group label from config.
+     *
+     * @return string|null
+     */
     public static function getNavigationGroup(): ?string
     {
         return config('recordkeeper.filament.navigation_group', 'Audit');
     }
 
+    /**
+     * Return the navigation sort order from config.
+     *
+     * @return int|null
+     */
     public static function getNavigationSort(): ?int
     {
         return (int) config('recordkeeper.filament.navigation_sort', 100);
     }
 
+    /**
+     * Return the navigation icon from config.
+     *
+     * @return string
+     */
     public static function getNavigationIcon(): string
     {
         return config('recordkeeper.filament.navigation_icon', 'heroicon-o-clock');
     }
 
+    /**
+     * Disallow manual audit creation through the UI.
+     *
+     * @return bool
+     */
     public static function canCreate(): bool
     {
         return false;
     }
 
+    /**
+     * Return an empty form schema (audits are read-only).
+     *
+     * @param  Schema  $schema
+     * @return Schema
+     */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);
     }
 
+    /**
+     * Build the audits list table with columns, filters, and row actions.
+     *
+     * @param  Table  $table
+     * @return Table
+     */
     public static function table(Table $table): Table
     {
         return $table
@@ -217,6 +252,12 @@ class AuditResource extends Resource
             ]);
     }
 
+    /**
+     * Build the audit detail infolist showing overview, changes, context, and outbound HTTP requests.
+     *
+     * @param  Infolist  $infolist
+     * @return Infolist
+     */
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -278,6 +319,11 @@ class AuditResource extends Resource
             ]);
     }
 
+    /**
+     * Return the route-to-page map for this resource.
+     *
+     * @return array<string, \Filament\Resources\Pages\PageRegistration>
+     */
     public static function getPages(): array
     {
         return [
@@ -286,6 +332,11 @@ class AuditResource extends Resource
         ];
     }
 
+    /**
+     * Return the attributes used for global search.
+     *
+     * @return array<int, string>
+     */
     public static function getGloballySearchableAttributes(): array
     {
         return ['event', 'auditable_type', 'batch_id'];

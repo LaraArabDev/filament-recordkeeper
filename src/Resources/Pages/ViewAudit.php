@@ -9,10 +9,17 @@ use Filament\Resources\Pages\ViewRecord;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Detail view page for a single audit record with an optional rollback header action. */
 class ViewAudit extends ViewRecord
 {
+    /** @var string The resource this page belongs to. */
     protected static string $resource = AuditResource::class;
 
+    /**
+     * Return the header actions, including the conditional rollback action.
+     *
+     * @return array<int, Action>
+     */
     protected function getHeaderActions(): array
     {
         return [

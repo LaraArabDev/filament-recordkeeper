@@ -7,26 +7,44 @@ namespace LaraArabDev\RecordkeeperFilament\Widgets;
 use Filament\Widgets\ChartWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Dashboard chart widget visualising command duration and audit impact across recent runs. */
 class CommandMetricsWidget extends ChartWidget
 {
+    /** @var string|null Widget heading shown above the chart. */
     protected static ?string $heading = 'Command Performance';
 
+    /** @var int|null Widget sort order on the dashboard. */
     protected static ?int $sort = 3;
 
+    /** @var string|null Currently selected command name filter value. */
     public ?string $filter = null;
 
+    /**
+     * Show this widget only when at least one command metrics config option is enabled.
+     *
+     * @return bool
+     */
     public static function canView(): bool
     {
         return config('recordkeeper.commands.metrics.memory', true)
             || config('recordkeeper.commands.metrics.audit_count', true);
     }
 
+    /**
+     * Return the Chart.js chart type identifier.
+     *
+     * @return string
+     */
     protected function getType(): string
     {
         return 'bar';
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Return a command-name keyed array for the filter dropdown, or null when no commands exist.
+     *
+     * @return array<string, string>|null
+     */
     protected function getFilters(): ?array
     {
         $commands = Audit::commandAudits()
@@ -58,7 +76,11 @@ class CommandMetricsWidget extends ChartWidget
         return $result;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Return the Chart.js dataset structure for the selected command's recent runs.
+     *
+     * @return array<string, mixed>
+     */
     protected function getData(): array
     {
         $commandName = $this->filter;
@@ -108,7 +130,11 @@ class CommandMetricsWidget extends ChartWidget
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Return the Chart.js options configuring dual Y-axes for duration and audit count.
+     *
+     * @return array<string, mixed>
+     */
     protected function getOptions(): array
     {
         return [

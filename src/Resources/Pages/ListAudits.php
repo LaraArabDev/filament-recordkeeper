@@ -10,10 +10,17 @@ use Illuminate\Database\Eloquent\Builder;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Paginated list page for audit records with event-based tabs. */
 class ListAudits extends ListRecords
 {
+    /** @var string The resource this page belongs to. */
     protected static string $resource = AuditResource::class;
 
+    /**
+     * Return the filterable tabs shown above the audit table.
+     *
+     * @return array<string, Tab>
+     */
     public function getTabs(): array
     {
         return [

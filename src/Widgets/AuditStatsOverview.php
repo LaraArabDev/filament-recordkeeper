@@ -8,8 +8,14 @@ use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
+/** Dashboard widget displaying aggregate audit counts broken down by event type and actor. */
 class AuditStatsOverview extends StatsOverviewWidget
 {
+    /**
+     * Return the stat cards with counts for each audit category.
+     *
+     * @return array<int, Stat>
+     */
     protected function getStats(): array
     {
         $total = Audit::count();
