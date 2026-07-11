@@ -1,0 +1,38 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+    ignoreErrors:
+        # Eloquent model dynamic properties (user_id, created_at, etc.)
+        -
+            identifier: property.notFound
+        # Trait used by consumer packages, not analysed in isolation
+        -
+            identifier: trait.unused
+        # Larastan relation existence false positives
+        -
+            identifier: larastan.relationExistence
+            reportUnmatched: false
+        # Filament classes not fully discoverable by PHPStan
+        -
+            identifier: class.notFound
+            reportUnmatched: false
+        # Filament method calls on base classes (getRecord(), rollback(), etc.)
+        -
+            identifier: method.notFound
+            reportUnmatched: false
+        # PHPDoc covariance mismatches with Filament base properties
+        -
+            identifier: property.phpDocType
+            reportUnmatched: false
+        # Filament static/non-static property overrides
+        -
+            identifier: property.static
+            reportUnmatched: false
+        # Filament argument type mismatches
+        -
+            identifier: argument.type
+            reportUnmatched: false

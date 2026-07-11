@@ -11,7 +11,7 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 class CommandMetricsWidget extends ChartWidget
 {
     /** @var string|null Widget heading shown above the chart. */
-    protected static ?string $heading = 'Command Performance';
+    protected ?string $heading = 'Command Performance';
 
     /** @var int|null Widget sort order on the dashboard. */
     protected static ?int $sort = 3;

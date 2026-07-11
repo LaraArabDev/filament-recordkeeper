@@ -32,7 +32,10 @@
         "psr-4": {"LaraArabDev\\RecordkeeperFilament\\Tests\\": "tests/"}
     },
     "scripts": {
-        "test": "phpunit --no-coverage"
+        "test": "phpunit --no-coverage",
+        "test:coverage": "phpunit --coverage-html coverage",
+        "analyse": "phpstan analyse --memory-limit=512M",
+        "format": "pint"
     },
     "extra": {
         "laravel": {

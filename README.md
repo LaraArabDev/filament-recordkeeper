@@ -19,7 +19,9 @@
 
 <p align="center">
     <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/LaraArabDev/filament-recordkeeper/tests.yml?branch=main&label=tests&style=flat-square" alt="Tests"></a>
+    <a href="https://codecov.io/gh/LaraArabDev/filament-recordkeeper"><img src="https://img.shields.io/codecov/c/github/LaraArabDev/filament-recordkeeper?style=flat-square" alt="codecov"></a>
     <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/static-analysis.yml"><img src="https://img.shields.io/github/actions/workflow/status/LaraArabDev/filament-recordkeeper/static-analysis.yml?branch=main&label=phpstan&style=flat-square" alt="Static Analysis"></a>
+    <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/security.yml"><img src="https://img.shields.io/github/actions/workflow/status/LaraArabDev/filament-recordkeeper/security.yml?branch=main&label=security&style=flat-square" alt="Security Audit"></a>
     <a href="https://github.com/LaraArabDev/filament-recordkeeper/actions/workflows/code-style.yml"><img src="https://img.shields.io/github/actions/workflow/status/LaraArabDev/filament-recordkeeper/code-style.yml?branch=main&label=pint&style=flat-square" alt="Code Style"></a>
 </p>
 
