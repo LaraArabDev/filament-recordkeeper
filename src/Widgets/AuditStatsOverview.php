@@ -18,30 +18,35 @@ class AuditStatsOverview extends StatsOverviewWidget
      */
     protected function getStats(): array
     {
-        $total = Audit::count();
-        $created = Audit::where('event', 'created')->count();
-        $updated = Audit::where('event', 'updated')->count();
-        $deleted = Audit::whereIn('event', ['deleted', 'forceDeleted'])->count();
-        $routes = Audit::where('event', 'like', 'route.%')->count();
+        $counts = Audit::query()
+            ->selectRaw(implode(', ', [
+                'COUNT(*) as total',
+                "SUM(CASE WHEN event = 'created' THEN 1 ELSE 0 END) as created",
+                "SUM(CASE WHEN event = 'updated' THEN 1 ELSE 0 END) as updated",
+                "SUM(CASE WHEN event IN ('deleted','forceDeleted') THEN 1 ELSE 0 END) as deleted",
+                "SUM(CASE WHEN event LIKE 'route.%' THEN 1 ELSE 0 END) as routes",
+            ]))
+            ->first();
+
         $actors = Audit::whereNotNull('user_id')->distinct('user_id')->count();
 
         return [
-            Stat::make('Total Audits', number_format($total))
+            Stat::make('Total Audits', number_format((int) $counts->total))
                 ->icon('heroicon-o-clock'),
 
-            Stat::make('Created', number_format($created))
+            Stat::make('Created', number_format((int) $counts->created))
                 ->color('success')
                 ->icon('heroicon-o-plus-circle'),
 
-            Stat::make('Updated', number_format($updated))
+            Stat::make('Updated', number_format((int) $counts->updated))
                 ->color('warning')
                 ->icon('heroicon-o-pencil'),
 
-            Stat::make('Deleted', number_format($deleted))
+            Stat::make('Deleted', number_format((int) $counts->deleted))
                 ->color('danger')
                 ->icon('heroicon-o-trash'),
 
-            Stat::make('Route Hits', number_format($routes))
+            Stat::make('Route Hits', number_format((int) $counts->routes))
                 ->color('info')
                 ->icon('heroicon-o-globe-alt'),
 

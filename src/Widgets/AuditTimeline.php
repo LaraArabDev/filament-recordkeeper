@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /** Dashboard widget showing the 20 most recent audit entries in a non-paginated table. */
 class AuditTimeline extends TableWidget
@@ -20,9 +21,6 @@ class AuditTimeline extends TableWidget
 
     /**
      * Build the recent-activity table limited to the latest 20 audit records.
-     *
-     * @param  Table  $table
-     * @return Table
      */
     public function table(Table $table): Table
     {
@@ -36,22 +34,15 @@ class AuditTimeline extends TableWidget
 
                 TextColumn::make('event')
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
-                        $state === 'created' => 'success',
-                        $state === 'updated' => 'warning',
-                        str_starts_with($state, 'route.') => 'info',
-                        default => 'gray',
-                    }),
+                    ->color(fn (string $state): string => AuditFormatter::eventColor($state)),
 
                 TextColumn::make('auditable_type')
                     ->label('Subject')
-                    ->formatStateUsing(fn ($state, $record) => class_basename((string) $state).' #'.$record->auditable_id),
+                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::subjectLabel($state, $record->auditable_id)),
 
                 TextColumn::make('user_id')
                     ->label('Actor')
-                    ->formatStateUsing(fn ($state, $record) => $state
-                        ? (class_basename((string) ($record->user_type ?? 'User')).' #'.$state)
-                        : 'system'),
+                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
             ])
             ->paginated(false);
     }

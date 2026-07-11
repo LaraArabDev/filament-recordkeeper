@@ -6,8 +6,9 @@ namespace LaraArabDev\RecordkeeperFilament\Resources\Pages;
 
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
-use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
+use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /** Detail view page for a single audit record with an optional rollback header action. */
 class ViewAudit extends ViewRecord
@@ -34,9 +35,7 @@ class ViewAudit extends ViewRecord
                     'createdAt' => $this->getRecord()->created_at?->diffForHumans(),
                 ]))
                 ->visible(fn () => $this->getRecord() instanceof Audit
-                    && $this->getRecord()->isRollbackable()
-                    && config('recordkeeper.filament.rollback_enabled', false)
-                    && config('recordkeeper.rollback.enabled', true))
+                    && AuditFormatter::canRevert($this->getRecord()))
                 ->action(fn () => $this->getRecord()->rollback()),
         ];
     }

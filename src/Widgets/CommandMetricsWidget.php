@@ -21,8 +21,6 @@ class CommandMetricsWidget extends ChartWidget
 
     /**
      * Show this widget only when at least one command metrics config option is enabled.
-     *
-     * @return bool
      */
     public static function canView(): bool
     {
@@ -32,8 +30,6 @@ class CommandMetricsWidget extends ChartWidget
 
     /**
      * Return the Chart.js chart type identifier.
-     *
-     * @return string
      */
     protected function getType(): string
     {
@@ -64,10 +60,7 @@ class CommandMetricsWidget extends ChartWidget
             return null;
         }
 
-        $result = [];
-        foreach ($commands as $cmd) {
-            $result[$cmd] = $cmd;
-        }
+        $result = array_combine($commands, $commands);
 
         if ($this->filter === null) {
             $this->filter = array_key_first($result);

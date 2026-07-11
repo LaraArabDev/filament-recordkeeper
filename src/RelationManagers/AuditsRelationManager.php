@@ -9,6 +9,8 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
+use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /** Relation manager that renders the audit history table for an Eloquent record. */
 class AuditsRelationManager extends RelationManager
@@ -24,9 +26,6 @@ class AuditsRelationManager extends RelationManager
 
     /**
      * Build the audit history table with event badges, actor column, and rollback action.
-     *
-     * @param  Table  $table
-     * @return Table
      */
     public function table(Table $table): Table
     {
@@ -40,23 +39,16 @@ class AuditsRelationManager extends RelationManager
 
                 TextColumn::make('event')
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
-                        $state === 'created' => 'success',
-                        $state === 'updated' => 'warning',
-                        in_array($state, ['deleted', 'forceDeleted'], true) => 'danger',
-                        default => 'gray',
-                    }),
+                    ->color(fn (string $state): string => AuditFormatter::eventColor($state)),
 
                 TextColumn::make('user_id')
                     ->label('Actor')
-                    ->formatStateUsing(fn ($state, $record) => $state
-                        ? (class_basename((string) ($record->user_type ?? 'User')).' #'.$state)
-                        : 'system'),
+                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->url(fn (Audit $record) => route('filament.admin.resources.audits.view', $record))
+                    ->url(fn (Audit $record) => AuditResource::getUrl('view', ['record' => $record]))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\Action::make('revert')
@@ -64,9 +56,7 @@ class AuditsRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn (Audit $record) => $record->isRollbackable()
-                        && config('recordkeeper.filament.rollback_enabled', false)
-                        && config('recordkeeper.rollback.enabled', true))
+                    ->visible(fn (Audit $record) => AuditFormatter::canRevert($record))
                     ->action(fn (Audit $record) => $record->rollback()),
             ]);
     }

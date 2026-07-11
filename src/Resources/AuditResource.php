@@ -11,6 +11,7 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -20,9 +21,10 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ListAudits;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ViewAudit;
-use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /** Filament resource providing list, filter, and detail views for audit records. */
 class AuditResource extends Resource
@@ -35,8 +37,6 @@ class AuditResource extends Resource
 
     /**
      * Return the navigation group label from config.
-     *
-     * @return string|null
      */
     public static function getNavigationGroup(): ?string
     {
@@ -45,8 +45,6 @@ class AuditResource extends Resource
 
     /**
      * Return the navigation sort order from config.
-     *
-     * @return int|null
      */
     public static function getNavigationSort(): ?int
     {
@@ -55,8 +53,6 @@ class AuditResource extends Resource
 
     /**
      * Return the navigation icon from config.
-     *
-     * @return string
      */
     public static function getNavigationIcon(): string
     {
@@ -65,8 +61,6 @@ class AuditResource extends Resource
 
     /**
      * Disallow manual audit creation through the UI.
-     *
-     * @return bool
      */
     public static function canCreate(): bool
     {
@@ -75,9 +69,6 @@ class AuditResource extends Resource
 
     /**
      * Return an empty form schema (audits are read-only).
-     *
-     * @param  Schema  $schema
-     * @return Schema
      */
     public static function form(Schema $schema): Schema
     {
@@ -86,9 +77,6 @@ class AuditResource extends Resource
 
     /**
      * Build the audits list table with columns, filters, and row actions.
-     *
-     * @param  Table  $table
-     * @return Table
      */
     public static function table(Table $table): Table
     {
@@ -105,27 +93,17 @@ class AuditResource extends Resource
 
                 TextColumn::make('event')
                     ->badge()
-                    ->color(fn (string $state): string => match (true) {
-                        $state === 'created' => 'success',
-                        $state === 'updated' => 'warning',
-                        in_array($state, ['deleted', 'forceDeleted'], true) => 'danger',
-                        str_starts_with($state, 'route.') => 'info',
-                        default => 'gray',
-                    })
+                    ->color(fn (string $state): string => AuditFormatter::eventColor($state))
                     ->searchable(),
 
                 TextColumn::make('auditable_type')
                     ->label('Subject')
-                    ->formatStateUsing(fn ($state, $record) => $state
-                        ? class_basename((string) $state).' #'.$record->auditable_id
-                        : '—')
+                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::subjectLabel($state, $record->auditable_id))
                     ->searchable(),
 
                 TextColumn::make('user_id')
                     ->label('Actor')
-                    ->formatStateUsing(fn ($state, $record) => $state
-                        ? class_basename((string) ($record->user_type ?? 'User')).' #'.$state
-                        : 'system'),
+                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
 
                 TextColumn::make('guard')
                     ->badge()
@@ -238,9 +216,7 @@ class AuditResource extends Resource
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn (Audit $record) => $record->isRollbackable()
-                        && config('recordkeeper.filament.rollback_enabled', false)
-                        && config('recordkeeper.rollback.enabled', true))
+                    ->visible(fn (Audit $record) => AuditFormatter::canRevert($record))
                     ->action(fn (Audit $record) => $record->rollback()),
             ])
             ->bulkActions([
@@ -254,9 +230,6 @@ class AuditResource extends Resource
 
     /**
      * Build the audit detail infolist showing overview, changes, context, and outbound HTTP requests.
-     *
-     * @param  Infolist  $infolist
-     * @return Infolist
      */
     public static function infolist(Infolist $infolist): Infolist
     {
@@ -268,14 +241,10 @@ class AuditResource extends Resource
                         TextEntry::make('event')->badge(),
                         TextEntry::make('auditable_type')
                             ->label('Subject')
-                            ->formatStateUsing(fn ($state, $record) => $state
-                                ? class_basename((string) $state).' #'.$record->auditable_id
-                                : '—'),
+                            ->formatStateUsing(fn ($state, $record) => AuditFormatter::subjectLabel($state, $record->auditable_id)),
                         TextEntry::make('user_id')
                             ->label('Actor')
-                            ->formatStateUsing(fn ($state, $record) => $state
-                                ? class_basename((string) ($record->user_type ?? 'User')).' #'.$state
-                                : 'system'),
+                            ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
                         TextEntry::make('guard')->badge(),
                         TextEntry::make('ip_address')->label('IP'),
                         TextEntry::make('created_at')->label('Time')->dateTime(),
@@ -322,7 +291,7 @@ class AuditResource extends Resource
     /**
      * Return the route-to-page map for this resource.
      *
-     * @return array<string, \Filament\Resources\Pages\PageRegistration>
+     * @return array<string, PageRegistration>
      */
     public static function getPages(): array
     {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\Tests\Unit;
 
-use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
 use LaraArabDev\Recordkeeper\Recordkeeper;
+use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 class ServiceProviderTest extends TestCase
@@ -22,5 +22,13 @@ class ServiceProviderTest extends TestCase
     public function core_recordkeeper_singleton_is_bound(): void
     {
         $this->assertTrue(app()->bound(Recordkeeper::class));
+    }
+
+    #[Test]
+    public function views_namespace_resolves_correctly(): void
+    {
+        $hints = app('view')->getFinder()->getHints();
+
+        $this->assertArrayHasKey('recordkeeper', $hints);
     }
 }
