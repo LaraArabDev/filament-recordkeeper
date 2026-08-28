@@ -146,8 +146,6 @@ RecordkeeperPlugin::make()
     ->navigationGroup('Audit')                  // sidebar group label
     ->navigationSort(50)                        // sidebar sort order
     ->navigationIcon('heroicon-o-shield-check') // sidebar icon
-    ->cluster(AuditCluster::class)              // assign to a Filament cluster
-    ->pollingInterval('30s')                    // live-refresh widgets
 ```
 
 ### All methods
@@ -158,25 +156,9 @@ RecordkeeperPlugin::make()
 | `enableStatsWidget(bool)` | `false` | Register the `AuditStatsOverview` widget on the panel dashboard. |
 | `enableTimeline(bool)` | `false` | Register the `AuditTimeline` widget on the panel dashboard. |
 | `enableCommandMetrics(bool)` | `false` | Register the `CommandMetricsWidget` on the panel dashboard. Only visible when `recordkeeper.commands.metrics.memory` or `recordkeeper.commands.metrics.audit_count` is enabled. |
-| `navigationGroup(string)` | `'Audit'` | Sidebar navigation group label for the audit resource. |
+| `navigationGroup(string\|UnitEnum)` | `'Audit'` | Sidebar navigation group label for the audit resource. Accepts a string or a `UnitEnum`. |
 | `navigationSort(int)` | `100` | Sort order of the audit resource in the sidebar. |
-| `navigationIcon(string)` | `'heroicon-o-clock'` | Heroicon name displayed next to the audit resource in the sidebar. |
-| `cluster(string)` | `null` | Fully-qualified class name of a Filament cluster to assign the resource to. |
-| `pollingInterval(string)` | `null` | Livewire polling interval for widgets (e.g. `'30s'`, `'10s'`). `null` disables polling. |
-
-### How configuration flows
-
-The plugin writes its settings into Laravel's runtime config at boot:
-
-```
-RecordkeeperPlugin::make()->enableRollback()
-    ↓
-config('recordkeeper.filament.rollback_enabled') = true
-    ↓
-AuditResource / ViewAudit reads config to show/hide revert button
-```
-
-This means you can also override values via `config/recordkeeper.php` if you prefer config files over the builder API.
+| `navigationIcon(string\|BackedEnum\|Htmlable)` | `'heroicon-o-clock'` | Icon displayed next to the audit resource in the sidebar. Accepts a Heroicon name, `BackedEnum`, or `Htmlable`. |
 
 ---
 
@@ -305,7 +287,7 @@ RecordkeeperPlugin::make()
 
 ### Audit Timeline
 
-A full-width table widget showing the 20 most recent audit entries. Not paginated — designed as a quick activity feed.
+A full-width table widget showing the 20 most recent audit entries — designed as a quick activity feed.
 
 Columns: Time (relative), Event (color-coded badge), Subject (`Model #ID`), Actor (`UserType #ID` or `system`).
 
@@ -596,11 +578,9 @@ public function panel(Panel $panel): Panel
 | `enableStatsWidget(bool)` | `false` | تسجيل ودجت الإحصائيات على لوحة التحكم. |
 | `enableTimeline(bool)` | `false` | تسجيل ودجت الجدول الزمني على لوحة التحكم. |
 | `enableCommandMetrics(bool)` | `false` | تسجيل ودجت أداء الأوامر. تظهر فقط عند تفعيل مقاييس الأوامر في إعدادات الحزمة الأساسية. |
-| `navigationGroup(string)` | `'Audit'` | تسمية المجموعة في الشريط الجانبي. |
+| `navigationGroup(string\|UnitEnum)` | `'Audit'` | تسمية المجموعة في الشريط الجانبي. يقبل نصاً أو `UnitEnum`. |
 | `navigationSort(int)` | `100` | ترتيب العرض في الشريط الجانبي. |
-| `navigationIcon(string)` | `'heroicon-o-clock'` | أيقونة الريسورس في الشريط الجانبي. |
-| `cluster(string)` | `null` | تعيين الريسورس لـ Filament Cluster. |
-| `pollingInterval(string)` | `null` | فترة التحديث التلقائي للودجات (مثل `'30s'`). |
+| `navigationIcon(string\|BackedEnum\|Htmlable)` | `'heroicon-o-clock'` | أيقونة الريسورس في الشريط الجانبي. يقبل اسم Heroicon أو `BackedEnum` أو `Htmlable`. |
 
 ### إضافة سجل التدقيق لأي ريسورس
 
@@ -678,7 +658,7 @@ class OrderResource extends Resource
 
 **ودجت الإحصائيات** — 6 بطاقات: إجمالي التدقيقات (أيقونة ساعة)، الإنشاء (دائرة زائد، أخضر)، التعديل (قلم، أصفر)، الحذف (سلة، أحمر)، طلبات المسارات (كرة أرضية، أزرق)، المستخدمين الفريدين (مجموعة مستخدمين). تستخدم استعلام SQL واحد مُحسّن بدلاً من 6 استعلامات منفصلة.
 
-**ودجت الجدول الزمني** — جدول بعرض كامل يعرض آخر 20 عملية تدقيق بدون ترقيم صفحات. يعرض: الوقت (نسبي)، الحدث (شارة ملوّنة)، الموضوع، المستخدم.
+**ودجت الجدول الزمني** — جدول بعرض كامل يعرض آخر 20 عملية تدقيق. يعرض: الوقت (نسبي)، الحدث (شارة ملوّنة)، الموضوع، المستخدم.
 
 **ودجت أداء الأوامر** — رسم بياني شريطي ثنائي المحاور يعرض آخر 14 تنفيذ للأمر المحدد. المحور الأيسر: المدة بالمللي ثانية (أعمدة). المحور الأيمن: عدد التدقيقات المُنشأة (خط). الأعمدة الحمراء تُشير إلى تنفيذ شاذ. قائمة منسدلة لاختيار الأمر (تُملأ تلقائياً).
 
