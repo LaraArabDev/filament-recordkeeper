@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "549d2ce48f0bb5e6b748d90dbad5ec46",
+    "content-hash": "857024cab11513af93fcf4d3919bd056",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -2026,11 +2026,17 @@
         },
         {
             "name": "laraarabdev/recordkeeper",
-            "version": "dev-feat/audit-driver-system",
+            "version": "v0.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LaraArabDev/recordkeeper.git",
+                "reference": "c1584da6947b3aed3a98305150ae18cd633180ba"
+            },
             "dist": {
-                "type": "path",
-                "url": "../filament-recordkeeper",
-                "reference": "0234fb9507c79b13d1877b79ba18abeb146a0da9"
+                "type": "zip",
+                "url": "https://api.github.com/repos/LaraArabDev/recordkeeper/zipball/c1584da6947b3aed3a98305150ae18cd633180ba",
+                "reference": "c1584da6947b3aed3a98305150ae18cd633180ba",
+                "shasum": ""
             },
             "require": {
                 "illuminate/contracts": "^11.0|^12.0",
@@ -2053,12 +2059,12 @@
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "LaraArabDev\\Recordkeeper\\RecordkeeperServiceProvider"
-                    ],
                     "aliases": {
                         "Recordkeeper": "LaraArabDev\\Recordkeeper\\Facades\\Recordkeeper"
-                    }
+                    },
+                    "providers": [
+                        "LaraArabDev\\Recordkeeper\\RecordkeeperServiceProvider"
+                    ]
                 }
             },
             "autoload": {
@@ -2066,51 +2072,7 @@
                     "LaraArabDev\\Recordkeeper\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaraArabDev\\Recordkeeper\\Tests\\": "tests/",
-                    "LaraArabDev\\Recordkeeper\\Benchmarks\\": "benchmarks/",
-                    "Workbench\\App\\": "workbench/app/"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "pest"
-                ],
-                "test:coverage": [
-                    "pest --coverage --coverage-clover coverage.xml"
-                ],
-                "analyse": [
-                    "phpstan analyse --memory-limit=512M"
-                ],
-                "format": [
-                    "pint"
-                ],
-                "infection": [
-                    "infection --threads=4 --min-msi=50 --min-covered-msi=60"
-                ],
-                "bench": [
-                    "phpbench run --report=default"
-                ],
-                "bench:quick": [
-                    "phpbench run --report=default --revs=3 --iterations=2"
-                ],
-                "bench:http": [
-                    "phpbench run --report=default --group=http"
-                ],
-                "bench:db": [
-                    "phpbench run --report=default --group=db"
-                ],
-                "bench:command": [
-                    "phpbench run --report=default --group=command"
-                ],
-                "bench:baseline": [
-                    "phpbench run --store --tag=baseline"
-                ],
-                "bench:compare": [
-                    "phpbench report --report=default --tag=baseline --ref=baseline"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -2123,15 +2085,16 @@
             "description": "Headless audit trail and rollback for any Laravel app — PHP 8 attributes, route auditing, privacy protection, and Artisan tools. No Filament required.",
             "homepage": "https://github.com/LaraArabDev/recordkeeper",
             "keywords": [
-                "audit",
+                "Audit",
                 "auditing",
                 "laravel",
                 "recordkeeper"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/LaraArabDev/recordkeeper/issues",
+                "source": "https://github.com/LaraArabDev/recordkeeper/tree/v0.1.1"
+            },
+            "time": "2026-07-11T11:17:59+00:00"
         },
         {
             "name": "laravel/framework",
@@ -5080,16 +5043,16 @@
         },
         {
             "name": "spatie/laravel-package-tools",
-            "version": "1.93.1",
+            "version": "1.93.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb"
+                "reference": "e927d5b5b05e9fecae098e559e51918aa608ad02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/d5552849801f2642aea710557463234b59ef65eb",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/e927d5b5b05e9fecae098e559e51918aa608ad02",
+                "reference": "e927d5b5b05e9fecae098e559e51918aa608ad02",
                 "shasum": ""
             },
             "require": {
@@ -5129,7 +5092,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.1"
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.2"
             },
             "funding": [
                 {
@@ -5137,7 +5100,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-19T14:06:37+00:00"
+            "time": "2026-08-26T09:13:25+00:00"
         },
         {
             "name": "spatie/shiki-php",
@@ -12275,10 +12238,8 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {
-        "laraarabdev/recordkeeper": 20
-    },
+    "minimum-stability": "stable",
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

@@ -14,13 +14,44 @@ class HasAuditHistoryTest extends TestCase
     #[Test]
     public function trait_includes_audits_relation_manager(): void
     {
-        $reflection = new \ReflectionMethod(HasAuditHistory::class, 'getRelationManagers');
+        $stub = new class extends HasAuditHistoryTestParent
+        {
+            use HasAuditHistory;
+        };
 
-        // The trait method exists and returns an array containing AuditsRelationManager
-        $this->assertTrue($reflection->isPublic());
+        $managers = $stub->getRelationManagers();
 
-        // Verify the source references AuditsRelationManager
-        $source = file_get_contents($reflection->getFileName());
-        $this->assertStringContainsString(AuditsRelationManager::class, $source);
+        $this->assertContains(AuditsRelationManager::class, $managers);
+    }
+
+    #[Test]
+    public function trait_merges_with_parent_relation_managers(): void
+    {
+        $stub = new class extends HasAuditHistoryTestParentWithExisting
+        {
+            use HasAuditHistory;
+        };
+
+        $managers = $stub->getRelationManagers();
+
+        $this->assertContains(AuditsRelationManager::class, $managers);
+        $this->assertContains('ExistingManager', $managers);
+        $this->assertCount(2, $managers);
+    }
+}
+
+class HasAuditHistoryTestParent
+{
+    public function getRelationManagers(): array
+    {
+        return [];
+    }
+}
+
+class HasAuditHistoryTestParentWithExisting
+{
+    public function getRelationManagers(): array
+    {
+        return ['ExistingManager'];
     }
 }

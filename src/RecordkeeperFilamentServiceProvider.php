@@ -4,22 +4,27 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament;
 
-use Illuminate\Support\ServiceProvider;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-/** Service provider that bootstraps the Filament UI layer for Recordkeeper. */
-class RecordkeeperFilamentServiceProvider extends ServiceProvider
+/**
+ * Service provider that registers package views for the Filament recordkeeper plugin.
+ */
+class RecordkeeperFilamentServiceProvider extends PackageServiceProvider
 {
-    /**
-     * Load package views and publish them when running in the console.
-     */
-    public function boot(): void
-    {
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'recordkeeper');
+    public static string $name = 'filament-recordkeeper';
 
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/recordkeeper'),
-            ], 'recordkeeper-filament-views');
-        }
+    public static string $viewNamespace = 'recordkeeper';
+
+    /**
+     * Configure the package name and views.
+     *
+     * @param  Package  $package  The spatie package builder.
+     */
+    public function configurePackage(Package $package): void
+    {
+        $package
+            ->name(static::$name)
+            ->hasViews(static::$viewNamespace);
     }
 }

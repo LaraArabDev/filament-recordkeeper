@@ -10,23 +10,26 @@ use Filament\Widgets\TableWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
-/** Dashboard widget showing the 20 most recent audit entries in a non-paginated table. */
+/**
+ * Dashboard widget showing a compact table of recent audit activity.
+ */
 class AuditTimeline extends TableWidget
 {
-    /** @var int|null Widget sort order on the dashboard. */
     protected static ?int $sort = 99;
 
-    /** @var int|string|array<int, int|string> Column span across the dashboard grid. */
     protected int|string|array $columnSpan = 'full';
 
     /**
-     * Build the recent-activity table limited to the latest 20 audit records.
+     * Define the timeline table with the 20 most recent audits.
+     *
+     * @param  Table  $table  The Filament table builder.
      */
     public function table(Table $table): Table
     {
         return $table
             ->heading('Recent Audit Activity')
-            ->query(Audit::query()->latest()->limit(20))
+            ->query(Audit::query()->latest())
+            ->paginated([20])
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Time')
@@ -43,7 +46,6 @@ class AuditTimeline extends TableWidget
                 TextColumn::make('user_id')
                     ->label('Actor')
                     ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
-            ])
-            ->paginated(false);
+            ]);
     }
 }

@@ -6,11 +6,13 @@ namespace LaraArabDev\RecordkeeperFilament\Concerns;
 
 use LaraArabDev\RecordkeeperFilament\RelationManagers\AuditsRelationManager;
 
-/** Adds the AuditsRelationManager to any Filament resource page that uses this trait. */
+/**
+ * Trait for Filament Resource classes to add an audit history relation manager tab.
+ */
 trait HasAuditHistory
 {
     /**
-     * Merge the AuditsRelationManager into the page's relation manager list.
+     * Merge the AuditsRelationManager with any existing relation managers.
      *
      * @return array<int, class-string>
      */

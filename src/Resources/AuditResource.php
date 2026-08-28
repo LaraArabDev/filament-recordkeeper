@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\Resources;
 
+use BackedEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\KeyValueEntry;
@@ -19,47 +20,50 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\RecordkeeperPlugin;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ListAudits;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ViewAudit;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
+use UnitEnum;
 
-/** Filament resource providing list, filter, and detail views for audit records. */
+/**
+ * Filament resource for browsing and inspecting audit records.
+ */
 class AuditResource extends Resource
 {
-    /** @var string|null Eloquent model class managed by this resource. */
     protected static ?string $model = Audit::class;
 
-    /** @var string|null URL slug used for resource routes. */
     protected static ?string $slug = 'audits';
 
     /**
-     * Return the navigation group label from config.
+     * Get the navigation group from the plugin configuration.
      */
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return config('recordkeeper.filament.navigation_group', 'Audit');
+        return RecordkeeperPlugin::get()->getNavigationGroup();
     }
 
     /**
-     * Return the navigation sort order from config.
+     * Get the navigation sort order from the plugin configuration.
      */
     public static function getNavigationSort(): ?int
     {
-        return (int) config('recordkeeper.filament.navigation_sort', 100);
+        return RecordkeeperPlugin::get()->getNavigationSort();
     }
 
     /**
-     * Return the navigation icon from config.
+     * Get the navigation icon from the plugin configuration.
      */
-    public static function getNavigationIcon(): string
+    public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
-        return config('recordkeeper.filament.navigation_icon', 'heroicon-o-clock');
+        return RecordkeeperPlugin::get()->getNavigationIcon();
     }
 
     /**
-     * Disallow manual audit creation through the UI.
+     * Audits are read-only; creation is always disabled.
      */
     public static function canCreate(): bool
     {
@@ -67,7 +71,9 @@ class AuditResource extends Resource
     }
 
     /**
-     * Return an empty form schema (audits are read-only).
+     * Define the form schema (empty — audits are not editable).
+     *
+     * @param  Schema  $schema  The Filament schema builder.
      */
     public static function form(Schema $schema): Schema
     {
@@ -75,7 +81,9 @@ class AuditResource extends Resource
     }
 
     /**
-     * Build the audits list table with columns, filters, and row actions.
+     * Define the table columns, filters, and actions for the audit listing.
+     *
+     * @param  Table  $table  The Filament table builder.
      */
     public static function table(Table $table): Table
     {
@@ -202,21 +210,15 @@ class AuditResource extends Resource
                 TernaryFilter::make('rollbackable')
                     ->label('Only rollbackable')
                     ->queries(
-                        true: fn (Builder $q) => $q->whereIn('event', ['created', 'updated', 'deleted', 'restored']),
-                        false: fn (Builder $q) => $q->whereNotIn('event', ['created', 'updated', 'deleted', 'restored']),
+                        true: fn (Builder $q) => $q->rollbackable(),
+                        false: fn (Builder $q) => $q->whereNotIn('event', Audit::ROLLBACKABLE_EVENTS),
                     ),
             ])
             ->filtersFormColumns(2)
             ->persistFiltersInSession()
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\Action::make('revert')
-                    ->label('Revert')
-                    ->icon('heroicon-o-arrow-uturn-left')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->visible(fn (Audit $record) => AuditFormatter::canRevert($record))
-                    ->action(fn (Audit $record) => $record->rollback()),
+                AuditFormatter::revertAction(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -228,7 +230,9 @@ class AuditResource extends Resource
     }
 
     /**
-     * Build the audit detail infolist showing overview, changes, context, and outbound HTTP requests.
+     * Define the infolist schema for viewing a single audit record.
+     *
+     * @param  Schema  $infolist  The Filament infolist schema builder.
      */
     public static function infolist(Schema $infolist): Schema
     {
@@ -288,7 +292,7 @@ class AuditResource extends Resource
     }
 
     /**
-     * Return the route-to-page map for this resource.
+     * Get the registered pages for this resource.
      *
      * @return array<string, PageRegistration>
      */
@@ -301,7 +305,7 @@ class AuditResource extends Resource
     }
 
     /**
-     * Return the attributes used for global search.
+     * Get the attributes used for global search.
      *
      * @return array<int, string>
      */

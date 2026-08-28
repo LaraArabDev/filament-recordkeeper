@@ -7,46 +7,40 @@ namespace LaraArabDev\RecordkeeperFilament\Widgets;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use LaraArabDev\Recordkeeper\Models\Audit;
+use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
-/** Dashboard widget displaying aggregate audit counts broken down by event type and actor. */
+/**
+ * Dashboard widget displaying aggregate audit event statistics.
+ */
 class AuditStatsOverview extends StatsOverviewWidget
 {
     /**
-     * Return the stat cards with counts for each audit category.
+     * Get the stat cards for the overview widget.
      *
      * @return array<int, Stat>
      */
     protected function getStats(): array
     {
-        $counts = Audit::query()
-            ->selectRaw(implode(', ', [
-                'COUNT(*) as total',
-                "SUM(CASE WHEN event = 'created' THEN 1 ELSE 0 END) as created",
-                "SUM(CASE WHEN event = 'updated' THEN 1 ELSE 0 END) as updated",
-                "SUM(CASE WHEN event IN ('deleted','forceDeleted') THEN 1 ELSE 0 END) as deleted",
-                "SUM(CASE WHEN event LIKE 'route.%' THEN 1 ELSE 0 END) as routes",
-            ]))
-            ->first();
-
+        $counts = AuditFormatter::eventCounts();
         $actors = Audit::whereNotNull('user_id')->distinct('user_id')->count();
 
         return [
-            Stat::make('Total Audits', number_format((int) $counts->total))
+            Stat::make('Total Audits', number_format($counts->total))
                 ->icon('heroicon-o-clock'),
 
-            Stat::make('Created', number_format((int) $counts->created))
+            Stat::make('Created', number_format($counts->created))
                 ->color('success')
                 ->icon('heroicon-o-plus-circle'),
 
-            Stat::make('Updated', number_format((int) $counts->updated))
+            Stat::make('Updated', number_format($counts->updated))
                 ->color('warning')
                 ->icon('heroicon-o-pencil'),
 
-            Stat::make('Deleted', number_format((int) $counts->deleted))
+            Stat::make('Deleted', number_format($counts->deleted))
                 ->color('danger')
                 ->icon('heroicon-o-trash'),
 
-            Stat::make('Route Hits', number_format((int) $counts->routes))
+            Stat::make('Route Hits', number_format($counts->routes))
                 ->color('info')
                 ->icon('heroicon-o-globe-alt'),
 

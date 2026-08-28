@@ -12,20 +12,21 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
-/** Relation manager that renders the audit history table for an Eloquent record. */
+/**
+ * Relation manager that adds an audit history tab to any Filament resource.
+ */
 class AuditsRelationManager extends RelationManager
 {
-    /** @var string Eloquent relationship name on the owner model. */
     protected static string $relationship = 'audits';
 
-    /** @var string|null Display title shown in the relation manager tab. */
     protected static ?string $title = 'History';
 
-    /** @var string|\BackedEnum|null Heroicon shown in the relation manager tab. */
     protected static string|\BackedEnum|null $icon = 'heroicon-o-clock';
 
     /**
-     * Build the audit history table with event badges, actor column, and rollback action.
+     * Define the table columns and actions for the audit history tab.
+     *
+     * @param  Table  $table  The Filament table builder.
      */
     public function table(Table $table): Table
     {
@@ -51,13 +52,7 @@ class AuditsRelationManager extends RelationManager
                     ->url(fn (Audit $record) => AuditResource::getUrl('view', ['record' => $record]))
                     ->openUrlInNewTab(),
 
-                Tables\Actions\Action::make('revert')
-                    ->label('Revert')
-                    ->icon('heroicon-o-arrow-uturn-left')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->visible(fn (Audit $record) => AuditFormatter::canRevert($record))
-                    ->action(fn (Audit $record) => $record->rollback()),
+                AuditFormatter::revertAction(),
             ]);
     }
 }

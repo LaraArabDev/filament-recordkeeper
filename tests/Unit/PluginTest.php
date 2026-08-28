@@ -87,82 +87,45 @@ class PluginTest extends TestCase
     }
 
     #[Test]
-    public function navigation_group_returns_static(): void
+    public function navigation_group_defaults_to_audit(): void
     {
-        $plugin = RecordkeeperPlugin::make();
-
-        $this->assertSame($plugin, $plugin->navigationGroup('System'));
+        $this->assertSame('Audit', RecordkeeperPlugin::make()->getNavigationGroup());
     }
 
     #[Test]
-    public function cluster_returns_static(): void
+    public function navigation_group_returns_custom_value(): void
     {
-        $plugin = RecordkeeperPlugin::make();
+        $plugin = RecordkeeperPlugin::make()->navigationGroup('System');
 
-        $this->assertSame($plugin, $plugin->cluster('MyCluster'));
+        $this->assertSame('System', $plugin->getNavigationGroup());
     }
 
     #[Test]
-    public function polling_interval_returns_static(): void
+    public function navigation_sort_defaults_to_100(): void
     {
-        $plugin = RecordkeeperPlugin::make();
-
-        $this->assertSame($plugin, $plugin->pollingInterval('5s'));
+        $this->assertSame(100, RecordkeeperPlugin::make()->getNavigationSort());
     }
 
     #[Test]
-    public function navigation_sort_returns_static(): void
+    public function navigation_sort_returns_custom_value(): void
     {
-        $plugin = RecordkeeperPlugin::make();
+        $plugin = RecordkeeperPlugin::make()->navigationSort(5);
 
-        $this->assertSame($plugin, $plugin->navigationSort(50));
+        $this->assertSame(5, $plugin->getNavigationSort());
     }
 
     #[Test]
-    public function navigation_icon_returns_static(): void
+    public function navigation_icon_defaults_to_clock(): void
     {
-        $plugin = RecordkeeperPlugin::make();
-
-        $this->assertSame($plugin, $plugin->navigationIcon('heroicon-o-shield-check'));
+        $this->assertSame('heroicon-o-clock', RecordkeeperPlugin::make()->getNavigationIcon());
     }
 
     #[Test]
-    public function boot_publishes_default_config_values(): void
+    public function navigation_icon_returns_custom_value(): void
     {
-        $plugin = RecordkeeperPlugin::make();
-        $panel = $this->createMock(Panel::class);
+        $plugin = RecordkeeperPlugin::make()->navigationIcon('heroicon-o-shield-check');
 
-        $plugin->boot($panel);
-
-        $this->assertFalse(config('recordkeeper.filament.rollback_enabled'));
-        $this->assertSame('Audit', config('recordkeeper.filament.navigation_group'));
-        $this->assertNull(config('recordkeeper.filament.cluster'));
-        $this->assertSame(100, config('recordkeeper.filament.navigation_sort'));
-        $this->assertSame('heroicon-o-clock', config('recordkeeper.filament.navigation_icon'));
-        $this->assertNull(config('recordkeeper.filament.polling_interval'));
-    }
-
-    #[Test]
-    public function boot_publishes_custom_config_values(): void
-    {
-        $plugin = RecordkeeperPlugin::make()
-            ->enableRollback()
-            ->navigationGroup('System')
-            ->cluster('App\\Filament\\Clusters\\Settings')
-            ->navigationSort(5)
-            ->navigationIcon('heroicon-o-shield-check')
-            ->pollingInterval('30s');
-
-        $panel = $this->createMock(Panel::class);
-
-        $plugin->boot($panel);
-
-        $this->assertTrue(config('recordkeeper.filament.rollback_enabled'));
-        $this->assertSame('System', config('recordkeeper.filament.navigation_group'));
-        $this->assertSame('App\\Filament\\Clusters\\Settings', config('recordkeeper.filament.cluster'));
-        $this->assertSame(5, config('recordkeeper.filament.navigation_sort'));
-        $this->assertSame('heroicon-o-shield-check', config('recordkeeper.filament.navigation_icon'));
-        $this->assertSame('30s', config('recordkeeper.filament.polling_interval'));
+        $this->assertSame('heroicon-o-shield-check', $plugin->getNavigationIcon());
     }
 
     #[Test]
@@ -278,12 +241,33 @@ class PluginTest extends TestCase
             ->enableStatsWidget()
             ->enableCommandMetrics()
             ->navigationGroup('Admin')
-            ->cluster('MyCluster')
             ->navigationSort(10)
-            ->navigationIcon('heroicon-o-eye')
-            ->pollingInterval('15s');
+            ->navigationIcon('heroicon-o-eye');
 
         $this->assertInstanceOf(RecordkeeperPlugin::class, $plugin);
         $this->assertTrue($plugin->isRollbackEnabled());
+        $this->assertSame('Admin', $plugin->getNavigationGroup());
+        $this->assertSame(10, $plugin->getNavigationSort());
+        $this->assertSame('heroicon-o-eye', $plugin->getNavigationIcon());
+    }
+
+    #[Test]
+    public function get_resolves_plugin_from_panel(): void
+    {
+        $plugin = RecordkeeperPlugin::get();
+
+        $this->assertInstanceOf(RecordkeeperPlugin::class, $plugin);
+        $this->assertTrue($plugin->isRollbackEnabled());
+    }
+
+    #[Test]
+    public function boot_accepts_panel_without_side_effects(): void
+    {
+        $plugin = RecordkeeperPlugin::make();
+        $panel = $this->createMock(Panel::class);
+
+        $plugin->boot($panel);
+
+        $this->assertInstanceOf(RecordkeeperPlugin::class, $plugin);
     }
 }

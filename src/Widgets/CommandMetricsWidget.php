@@ -7,20 +7,19 @@ namespace LaraArabDev\RecordkeeperFilament\Widgets;
 use Filament\Widgets\ChartWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
-/** Dashboard chart widget visualising command duration and audit impact across recent runs. */
+/**
+ * Dashboard chart widget showing command execution duration and audit impact over time.
+ */
 class CommandMetricsWidget extends ChartWidget
 {
-    /** @var string|null Widget heading shown above the chart. */
     protected ?string $heading = 'Command Performance';
 
-    /** @var int|null Widget sort order on the dashboard. */
     protected static ?int $sort = 3;
 
-    /** @var string|null Currently selected command name filter value. */
     public ?string $filter = null;
 
     /**
-     * Show this widget only when at least one command metrics config option is enabled.
+     * Determine whether this widget should be visible based on config.
      */
     public static function canView(): bool
     {
@@ -29,7 +28,7 @@ class CommandMetricsWidget extends ChartWidget
     }
 
     /**
-     * Return the Chart.js chart type identifier.
+     * Get the chart type.
      */
     protected function getType(): string
     {
@@ -37,42 +36,35 @@ class CommandMetricsWidget extends ChartWidget
     }
 
     /**
-     * Return a command-name keyed array for the filter dropdown, or null when no commands exist.
+     * Get the filter options (distinct command names) and auto-select the first.
      *
-     * @return array<string, string>|null
+     * @return array<string, string>|null Null when no command audits exist.
      */
     protected function getFilters(): ?array
     {
         $commands = Audit::commandAudits()
             ->where('event', 'command.finished')
-            ->select('context')
-            ->latest()
-            ->limit(200)
-            ->get()
-            ->map(fn ($a) => $a->context['command'] ?? null)
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values()
+            ->whereNotNull('source')
+            ->distinct()
+            ->orderBy('source')
+            ->pluck('source', 'source')
             ->all();
 
         if (empty($commands)) {
             return null;
         }
 
-        $result = array_combine($commands, $commands);
-
         if ($this->filter === null) {
-            $this->filter = array_key_first($result);
+            $this->filter = array_key_first($commands);
         }
 
-        return $result;
+        return $commands;
     }
 
     /**
-     * Return the Chart.js dataset structure for the selected command's recent runs.
+     * Get the chart datasets (duration bars and audit impact line) for the selected command.
      *
-     * @return array<string, mixed>
+     * @return array{labels: list<string>, datasets: list<array<string, mixed>>}
      */
     protected function getData(): array
     {
@@ -84,7 +76,7 @@ class CommandMetricsWidget extends ChartWidget
 
         $runs = Audit::commandAudits()
             ->where('event', 'command.finished')
-            ->whereRaw("JSON_EXTRACT(context, '$.command') = ?", [$commandName])
+            ->where('source', $commandName)
             ->latest()
             ->limit(14)
             ->get()
@@ -124,7 +116,7 @@ class CommandMetricsWidget extends ChartWidget
     }
 
     /**
-     * Return the Chart.js options configuring dual Y-axes for duration and audit count.
+     * Get the Chart.js options for dual Y-axis configuration.
      *
      * @return array<string, mixed>
      */

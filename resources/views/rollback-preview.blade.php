@@ -20,7 +20,7 @@
                             @if($values['new'] === '***')
                                 ***
                             @elseif(is_string($values['new']) && str_starts_with($values['new'], '__encrypted:'))
-                                🔒 encrypted
+                                [encrypted]
                             @else
                                 {{ is_array($values['new']) ? json_encode($values['new']) : $values['new'] }}
                             @endif
@@ -29,7 +29,7 @@
                             @if($values['old'] === '***')
                                 ***
                             @elseif(is_string($values['old']) && str_starts_with($values['old'], '__encrypted:'))
-                                🔒 encrypted
+                                [encrypted]
                             @else
                                 {{ is_array($values['old']) ? json_encode($values['old']) : $values['old'] }}
                             @endif

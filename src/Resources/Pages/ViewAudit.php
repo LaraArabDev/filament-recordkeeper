@@ -10,14 +10,15 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
-/** Detail view page for a single audit record with an optional rollback header action. */
+/**
+ * View page for a single audit record with optional revert header action.
+ */
 class ViewAudit extends ViewRecord
 {
-    /** @var string The resource this page belongs to. */
     protected static string $resource = AuditResource::class;
 
     /**
-     * Return the header actions, including the conditional rollback action.
+     * Get the header actions including the conditional revert action.
      *
      * @return array<int, Action>
      */

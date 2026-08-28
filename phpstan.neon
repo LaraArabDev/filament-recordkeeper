@@ -6,33 +6,51 @@ parameters:
     paths:
         - src
     ignoreErrors:
-        # Eloquent model dynamic properties (user_id, created_at, etc.)
-        -
-            identifier: property.notFound
         # Trait used by consumer packages, not analysed in isolation
         -
             identifier: trait.unused
-        # Larastan relation existence false positives
+
+        # Filament Tables/Infolists action classes not resolved by Larastan
         -
-            identifier: larastan.relationExistence
-            reportUnmatched: false
-        # Filament classes not fully discoverable by PHPStan
+            message: '#Call to static method make\(\) on an unknown class Filament\\(Tables\\Actions|Infolists\\Components)\\#'
+            paths:
+                - src/Resources/AuditResource.php
+                - src/RelationManagers/AuditsRelationManager.php
+
+        # AuditFormatter::revertAction() returns Filament\Tables\Actions\Action (unresolved by Larastan)
         -
-            identifier: class.notFound
-            reportUnmatched: false
-        # Filament method calls on base classes (getRecord(), rollback(), etc.)
+            messages:
+                - '#has invalid return type Filament\\Tables\\Actions\\Action#'
+                - '#Call to static method make\(\) on an unknown class Filament\\Tables\\Actions\\Action#'
+            path: src/Support/AuditFormatter.php
+
+        # Table::actions() type mismatch from mixed ViewAction/revertAction returns
         -
-            identifier: method.notFound
-            reportUnmatched: false
-        # PHPDoc covariance mismatches with Filament base properties
+            message: '#Parameter \#1 \$actions of method Filament\\Tables\\Table::actions\(\)#'
+            paths:
+                - src/Resources/AuditResource.php
+                - src/RelationManagers/AuditsRelationManager.php
+
+        # Core Audit model scopes (rollbackable, routeHits) called on Builder
         -
-            identifier: property.phpDocType
-            reportUnmatched: false
-        # Filament static/non-static property overrides
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::(rollbackable|routeHits)\(\)#'
+            paths:
+                - src/Resources/AuditResource.php
+                - src/Resources/Pages/ListAudits.php
+
+        # ViewRecord::getRecord() returns Model, but we know it's Audit — core methods and properties
         -
-            identifier: property.static
-            reportUnmatched: false
-        # Filament argument type mismatches
+            messages:
+                - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::(getModified|rollback)\(\)#'
+                - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$(event|created_at)#'
+            path: src/Resources/Pages/ViewAudit.php
+
+        # view() function string not recognized as view-string
         -
-            identifier: argument.type
-            reportUnmatched: false
+            message: '#Parameter \#1 \$view of function view expects view-string\|null, string given#'
+            path: src/Resources/Pages/ViewAudit.php
+
+        # Dynamic properties from selectRaw aggregate aliases (total, created, updated, deleted, routes)
+        -
+            message: '#Access to an undefined property LaraArabDev\\Recordkeeper\\Models\\Audit::\$(total|created|updated|deleted|routes)#'
+            path: src/Support/AuditFormatter.php
