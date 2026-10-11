@@ -23,11 +23,6 @@ class AuditsRelationManager extends RelationManager
 
     protected static string|\BackedEnum|null $icon = 'heroicon-o-clock';
 
-    /**
-     * Define the table columns and actions for the audit history tab.
-     *
-     * @param  Table  $table  The Filament table builder.
-     */
     public function table(Table $table): Table
     {
         return $table

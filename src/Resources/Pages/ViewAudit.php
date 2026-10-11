@@ -17,13 +17,12 @@ class ViewAudit extends ViewRecord
 {
     protected static string $resource = AuditResource::class;
 
-    /**
-     * Get the header actions including the conditional revert action.
-     *
-     * @return array<int, Action>
-     */
+    /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
+        /** @var Audit $audit */
+        $audit = $this->getRecord();
+
         return [
             Action::make('revert')
                 ->label('Revert this change')
@@ -31,13 +30,12 @@ class ViewAudit extends ViewRecord
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalDescription(fn () => view('recordkeeper::rollback-preview', [
-                    'modified' => $this->getRecord()->getModified(),
-                    'event' => $this->getRecord()->event,
-                    'createdAt' => $this->getRecord()->created_at?->diffForHumans(),
+                    'modified' => $audit->getModified(),
+                    'event' => $audit->event,
+                    'createdAt' => $audit->created_at?->diffForHumans(),
                 ]))
-                ->visible(fn () => $this->getRecord() instanceof Audit
-                    && AuditFormatter::canRevert($this->getRecord()))
-                ->action(fn () => $this->getRecord()->rollback()),
+                ->visible(fn () => AuditFormatter::canRevert($audit))
+                ->action(fn () => $audit->rollback()),
         ];
     }
 }

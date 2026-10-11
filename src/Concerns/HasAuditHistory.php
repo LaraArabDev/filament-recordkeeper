@@ -11,11 +11,7 @@ use LaraArabDev\RecordkeeperFilament\RelationManagers\AuditsRelationManager;
  */
 trait HasAuditHistory
 {
-    /**
-     * Merge the AuditsRelationManager with any existing relation managers.
-     *
-     * @return array<int, class-string>
-     */
+    /** @return array<int, class-string> */
     public function getRelationManagers(): array
     {
         return array_merge(

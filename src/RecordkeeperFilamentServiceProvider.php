@@ -8,7 +8,7 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 /**
- * Service provider that registers package views for the Filament recordkeeper plugin.
+ * Registers package views for the Filament recordkeeper plugin.
  */
 class RecordkeeperFilamentServiceProvider extends PackageServiceProvider
 {
@@ -16,11 +16,6 @@ class RecordkeeperFilamentServiceProvider extends PackageServiceProvider
 
     public static string $viewNamespace = 'recordkeeper';
 
-    /**
-     * Configure the package name and views.
-     *
-     * @param  Package  $package  The spatie package builder.
-     */
     public function configurePackage(Package $package): void
     {
         $package
