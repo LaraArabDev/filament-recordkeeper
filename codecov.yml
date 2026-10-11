@@ -1,0 +1,13 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+    patch:
+      default:
+        informational: true
+
+ignore:
+  - "config/**"
+  - "resources/**"
+  - "database/**"

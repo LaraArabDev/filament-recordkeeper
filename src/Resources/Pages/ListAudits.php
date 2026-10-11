@@ -17,11 +17,7 @@ class ListAudits extends ListRecords
 {
     protected static string $resource = AuditResource::class;
 
-    /**
-     * Get the tab definitions with event-based filtering and badge counts.
-     *
-     * @return array<string, Tab>
-     */
+    /** @return array<string, Tab> */
     public function getTabs(): array
     {
         $counts = AuditFormatter::eventCounts();

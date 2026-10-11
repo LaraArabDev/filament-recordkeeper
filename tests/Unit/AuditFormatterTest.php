@@ -114,18 +114,19 @@ class AuditFormatterTest extends TestCase
         $this->assertSame(0, $counts->updated);
         $this->assertSame(0, $counts->deleted);
         $this->assertSame(0, $counts->routes);
+        $this->assertSame(0, $counts->actors);
     }
 
     #[Test]
     public function event_counts_reflects_seeded_data(): void
     {
         Audit::insert([
-            ['event' => 'created', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['event' => 'created', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['event' => 'updated', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['event' => 'deleted', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 3, 'created_at' => now(), 'updated_at' => now()],
-            ['event' => 'forceDeleted', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 4, 'created_at' => now(), 'updated_at' => now()],
-            ['event' => 'route.visited', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => null, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'created', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 1, 'user_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'created', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 2, 'user_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'updated', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 1, 'user_id' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'deleted', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 3, 'user_id' => null, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'forceDeleted', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => 4, 'user_id' => 3, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'route.visited', 'auditable_type' => 'App\\Models\\User', 'auditable_id' => null, 'user_id' => null, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         $counts = AuditFormatter::eventCounts();
@@ -135,5 +136,6 @@ class AuditFormatterTest extends TestCase
         $this->assertSame(1, $counts->updated);
         $this->assertSame(2, $counts->deleted);
         $this->assertSame(1, $counts->routes);
+        $this->assertSame(3, $counts->actors);
     }
 }

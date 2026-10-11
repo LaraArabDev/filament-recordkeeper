@@ -6,7 +6,6 @@ namespace LaraArabDev\RecordkeeperFilament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /**
@@ -14,15 +13,10 @@ use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
  */
 class AuditStatsOverview extends StatsOverviewWidget
 {
-    /**
-     * Get the stat cards for the overview widget.
-     *
-     * @return array<int, Stat>
-     */
+    /** @return array<int, Stat> */
     protected function getStats(): array
     {
         $counts = AuditFormatter::eventCounts();
-        $actors = Audit::whereNotNull('user_id')->distinct('user_id')->count();
 
         return [
             Stat::make('Total Audits', number_format($counts->total))
@@ -44,7 +38,7 @@ class AuditStatsOverview extends StatsOverviewWidget
                 ->color('info')
                 ->icon('heroicon-o-globe-alt'),
 
-            Stat::make('Distinct Actors', number_format($actors))
+            Stat::make('Distinct Actors', number_format($counts->actors))
                 ->icon('heroicon-o-users'),
         ];
     }

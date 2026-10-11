@@ -30,7 +30,7 @@ use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 use UnitEnum;
 
 /**
- * Filament resource for browsing and inspecting audit records.
+ * Read-only Filament resource for browsing and inspecting audit records.
  */
 class AuditResource extends Resource
 {
@@ -38,53 +38,31 @@ class AuditResource extends Resource
 
     protected static ?string $slug = 'audits';
 
-    /**
-     * Get the navigation group from the plugin configuration.
-     */
     public static function getNavigationGroup(): string|UnitEnum|null
     {
         return RecordkeeperPlugin::get()->getNavigationGroup();
     }
 
-    /**
-     * Get the navigation sort order from the plugin configuration.
-     */
     public static function getNavigationSort(): ?int
     {
         return RecordkeeperPlugin::get()->getNavigationSort();
     }
 
-    /**
-     * Get the navigation icon from the plugin configuration.
-     */
     public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
         return RecordkeeperPlugin::get()->getNavigationIcon();
     }
 
-    /**
-     * Audits are read-only; creation is always disabled.
-     */
     public static function canCreate(): bool
     {
         return false;
     }
 
-    /**
-     * Define the form schema (empty — audits are not editable).
-     *
-     * @param  Schema  $schema  The Filament schema builder.
-     */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);
     }
 
-    /**
-     * Define the table columns, filters, and actions for the audit listing.
-     *
-     * @param  Table  $table  The Filament table builder.
-     */
     public static function table(Table $table): Table
     {
         return $table
@@ -229,11 +207,6 @@ class AuditResource extends Resource
             ]);
     }
 
-    /**
-     * Define the infolist schema for viewing a single audit record.
-     *
-     * @param  Schema  $infolist  The Filament infolist schema builder.
-     */
     public static function infolist(Schema $infolist): Schema
     {
         return $infolist
@@ -291,11 +264,7 @@ class AuditResource extends Resource
             ]);
     }
 
-    /**
-     * Get the registered pages for this resource.
-     *
-     * @return array<string, PageRegistration>
-     */
+    /** @return array<string, PageRegistration> */
     public static function getPages(): array
     {
         return [
@@ -304,11 +273,7 @@ class AuditResource extends Resource
         ];
     }
 
-    /**
-     * Get the attributes used for global search.
-     *
-     * @return array<int, string>
-     */
+    /** @return array<int, string> */
     public static function getGloballySearchableAttributes(): array
     {
         return ['event', 'auditable_type', 'batch_id'];

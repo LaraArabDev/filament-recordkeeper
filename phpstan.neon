@@ -38,19 +38,12 @@ parameters:
                 - src/Resources/AuditResource.php
                 - src/Resources/Pages/ListAudits.php
 
-        # ViewRecord::getRecord() returns Model, but we know it's Audit — core methods and properties
-        -
-            messages:
-                - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::(getModified|rollback)\(\)#'
-                - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$(event|created_at)#'
-            path: src/Resources/Pages/ViewAudit.php
-
         # view() function string not recognized as view-string
         -
             message: '#Parameter \#1 \$view of function view expects view-string\|null, string given#'
             path: src/Resources/Pages/ViewAudit.php
 
-        # Dynamic properties from selectRaw aggregate aliases (total, created, updated, deleted, routes)
+        # Dynamic properties from selectRaw aggregate aliases
         -
-            message: '#Access to an undefined property LaraArabDev\\Recordkeeper\\Models\\Audit::\$(total|created|updated|deleted|routes)#'
+            message: '#Access to an undefined property LaraArabDev\\Recordkeeper\\Models\\Audit::\$(total|created|updated|deleted|routes|actors)#'
             path: src/Support/AuditFormatter.php

@@ -19,11 +19,6 @@ class AuditTimeline extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    /**
-     * Define the timeline table with the 20 most recent audits.
-     *
-     * @param  Table  $table  The Filament table builder.
-     */
     public function table(Table $table): Table
     {
         return $table

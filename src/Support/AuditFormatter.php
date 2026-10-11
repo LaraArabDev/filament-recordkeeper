@@ -13,15 +13,9 @@ use LaraArabDev\RecordkeeperFilament\RecordkeeperPlugin;
  */
 final class AuditFormatter
 {
-    /** @var object{total: int, created: int, updated: int, deleted: int, routes: int}|null */
+    /** @var object{total: int, created: int, updated: int, deleted: int, routes: int, actors: int}|null */
     private static ?object $eventCountsCache = null;
 
-    /**
-     * Map an audit event name to a Filament badge color.
-     *
-     * @param  string  $event  The audit event name.
-     * @return string Filament color identifier (success, warning, danger, info, gray).
-     */
     public static function eventColor(string $event): string
     {
         return match ($event) {
@@ -32,13 +26,6 @@ final class AuditFormatter
         };
     }
 
-    /**
-     * Format the actor (user) as a human-readable label.
-     *
-     * @param  mixed  $userId  The user ID or null for system actions.
-     * @param  mixed  $userType  The polymorphic user type FQCN.
-     * @return string Label like "User #5" or "system".
-     */
     public static function actorLabel(mixed $userId, mixed $userType): string
     {
         if ($userId === null || $userId === 0 || $userId === '') {
@@ -48,13 +35,6 @@ final class AuditFormatter
         return class_basename((string) ($userType ?? 'User')).' #'.$userId;
     }
 
-    /**
-     * Format the auditable subject as a human-readable label.
-     *
-     * @param  mixed  $auditableType  The polymorphic auditable type FQCN.
-     * @param  mixed  $auditableId  The auditable model ID.
-     * @return string Label like "Order #42" or an em dash when no type is present.
-     */
     public static function subjectLabel(mixed $auditableType, mixed $auditableId): string
     {
         return $auditableType
@@ -63,9 +43,9 @@ final class AuditFormatter
     }
 
     /**
-     * Aggregate event counts across all audits in a single query (memoized per request).
+     * Aggregate event counts and distinct actors in a single query (memoized per request).
      *
-     * @return object{total: int, created: int, updated: int, deleted: int, routes: int}
+     * @return object{total: int, created: int, updated: int, deleted: int, routes: int, actors: int}
      */
     public static function eventCounts(): object
     {
@@ -80,6 +60,7 @@ final class AuditFormatter
                 "SUM(CASE WHEN event = 'updated' THEN 1 ELSE 0 END) as updated",
                 "SUM(CASE WHEN event IN ('deleted','forceDeleted') THEN 1 ELSE 0 END) as deleted",
                 "SUM(CASE WHEN event LIKE 'route.%' THEN 1 ELSE 0 END) as routes",
+                'COUNT(DISTINCT user_id) as actors',
             ]))
             ->first();
 
@@ -89,22 +70,15 @@ final class AuditFormatter
             'updated' => (int) $row->updated,
             'deleted' => (int) $row->deleted,
             'routes' => (int) $row->routes,
+            'actors' => (int) $row->actors,
         ];
     }
 
-    /**
-     * Clear the memoized event counts cache.
-     */
     public static function resetEventCountsCache(): void
     {
         self::$eventCountsCache = null;
     }
 
-    /**
-     * Build a reusable Filament table action for reverting an audit.
-     *
-     * @return Action Configured revert action with confirmation and visibility check.
-     */
     public static function revertAction(): Action
     {
         return Action::make('revert')
@@ -117,10 +91,7 @@ final class AuditFormatter
     }
 
     /**
-     * Determine whether an audit record can be reverted in the current context.
-     *
-     * @param  Audit  $audit  The audit record to check.
-     * @return bool True if the audit is rollbackable, core config allows it, and the plugin has rollback enabled.
+     * Checks audit rollbackability, core config, and plugin enablement.
      */
     public static function canRevert(Audit $audit): bool
     {

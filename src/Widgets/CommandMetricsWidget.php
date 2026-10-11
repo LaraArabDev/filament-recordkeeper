@@ -18,28 +18,18 @@ class CommandMetricsWidget extends ChartWidget
 
     public ?string $filter = null;
 
-    /**
-     * Determine whether this widget should be visible based on config.
-     */
     public static function canView(): bool
     {
         return config('recordkeeper.commands.metrics.memory', true)
             || config('recordkeeper.commands.metrics.audit_count', true);
     }
 
-    /**
-     * Get the chart type.
-     */
     protected function getType(): string
     {
         return 'bar';
     }
 
-    /**
-     * Get the filter options (distinct command names) and auto-select the first.
-     *
-     * @return array<string, string>|null Null when no command audits exist.
-     */
+    /** @return array<string, string>|null */
     protected function getFilters(): ?array
     {
         $commands = Audit::commandAudits()
@@ -61,11 +51,7 @@ class CommandMetricsWidget extends ChartWidget
         return $commands;
     }
 
-    /**
-     * Get the chart datasets (duration bars and audit impact line) for the selected command.
-     *
-     * @return array{labels: list<string>, datasets: list<array<string, mixed>>}
-     */
+    /** @return array{labels: list<string>, datasets: list<array<string, mixed>>} */
     protected function getData(): array
     {
         $commandName = $this->filter;
@@ -115,11 +101,7 @@ class CommandMetricsWidget extends ChartWidget
         ];
     }
 
-    /**
-     * Get the Chart.js options for dual Y-axis configuration.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     protected function getOptions(): array
     {
         return [
