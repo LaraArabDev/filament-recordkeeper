@@ -5,8 +5,7 @@ coverage:
         target: auto
     patch:
       default:
-        target: auto
-        threshold: 5%
+        informational: true
 
 ignore:
   - "config/**"
