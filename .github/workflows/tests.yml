@@ -50,15 +50,14 @@ jobs:
             ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-
 
       - name: Install dependencies
-        env:
-          COMPOSER_NO_AUDIT: 1
         run: |
           composer require \
             "laravel/framework:${{ matrix.laravel }}" \
             "orchestra/testbench:${{ matrix.testbench }}" \
             "filament/filament:${{ matrix.filament }}" \
             --no-interaction --no-update
-          composer update --no-interaction --prefer-dist --no-progress
+          composer config --no-plugins policy.advisories.block false
+          composer update --no-interaction --prefer-dist --no-progress --no-audit
 
       - name: Run tests with coverage
         run: vendor/bin/phpunit --coverage-clover coverage.xml
