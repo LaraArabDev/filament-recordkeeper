@@ -50,6 +50,8 @@ jobs:
             ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-
 
       - name: Install dependencies
+        env:
+          COMPOSER_NO_AUDIT: 1
         run: |
           composer require \
             "laravel/framework:${{ matrix.laravel }}" \
