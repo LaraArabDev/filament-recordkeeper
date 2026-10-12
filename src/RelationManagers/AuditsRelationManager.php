@@ -6,10 +6,10 @@ namespace LaraArabDev\RecordkeeperFilament\RelationManagers;
 
 use Filament\Actions\ViewAction;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
+use LaraArabDev\RecordkeeperFilament\Resources\Concerns\AuditTableSchema;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 
 /**
@@ -27,20 +27,7 @@ class AuditsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('event')
-            ->columns([
-                TextColumn::make('created_at')
-                    ->label('Time')
-                    ->since()
-                    ->sortable(),
-
-                TextColumn::make('event')
-                    ->badge()
-                    ->color(fn (string $state): string => AuditFormatter::eventColor($state)),
-
-                TextColumn::make('user_id')
-                    ->label('Actor')
-                    ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
-            ])
+            ->columns(AuditTableSchema::coreColumns())
             ->defaultSort('created_at', 'desc')
             ->actions([
                 ViewAction::make()
