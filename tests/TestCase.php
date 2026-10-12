@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\Tests;
 
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
+use BladeUI\Icons\BladeIconsServiceProvider;
 use Filament\Actions\ActionsServiceProvider;
 use Filament\Facades\Filament;
 use Filament\FilamentServiceProvider;
@@ -21,8 +23,13 @@ use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\Recordkeeper\RecordkeeperServiceProvider;
 use LaraArabDev\RecordkeeperFilament\RecordkeeperFilamentServiceProvider;
 use LaraArabDev\RecordkeeperFilament\RecordkeeperPlugin;
+use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
+use LaraArabDev\RecordkeeperFilament\Widgets\AuditStatsOverview;
+use LaraArabDev\RecordkeeperFilament\Widgets\AuditTimeline;
+use LaraArabDev\RecordkeeperFilament\Widgets\CommandMetricsWidget;
 use Livewire\LivewireServiceProvider;
+use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use OwenIt\Auditing\AuditingServiceProvider;
 
@@ -32,13 +39,15 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
         $this->setUpDatabase();
-        $this->setUpPanel();
+        app()->instance(DataStore::class, app(DataStore::class));
         AuditFormatter::resetEventCountsCache();
     }
 
     protected function getPackageProviders($app): array
     {
         return [
+            BladeIconsServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
             LivewireServiceProvider::class,
             SupportServiceProvider::class,
             SchemasServiceProvider::class,
@@ -67,12 +76,17 @@ class TestCase extends BaseTestCase
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         $app['config']->set('audit.implementation', Audit::class);
         $app['config']->set('audit.console', true);
-    }
 
-    protected function setUpPanel(): void
-    {
         $panel = Panel::make()
             ->id('test')
+            ->default()
+            ->path('test')
+            ->resources([AuditResource::class])
+            ->widgets([
+                AuditStatsOverview::class,
+                AuditTimeline::class,
+                CommandMetricsWidget::class,
+            ])
             ->plugin(
                 RecordkeeperPlugin::make()
                     ->enableRollback()
