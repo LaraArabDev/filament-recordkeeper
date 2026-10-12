@@ -105,6 +105,25 @@ class AuditFormatterTest extends TestCase
     }
 
     #[Test]
+    public function can_revert_returns_true_when_all_conditions_met(): void
+    {
+        config(['recordkeeper.rollback.enabled' => true]);
+
+        $audit = $this->createMock(Audit::class);
+        $audit->method('isRollbackable')->willReturn(true);
+
+        $this->assertTrue(AuditFormatter::canRevert($audit));
+    }
+
+    #[Test]
+    public function revert_action_returns_configured_action(): void
+    {
+        $action = AuditFormatter::revertAction();
+
+        $this->assertSame('revert', $action->getName());
+    }
+
+    #[Test]
     public function event_counts_returns_zero_counts_with_empty_database(): void
     {
         $counts = AuditFormatter::eventCounts();

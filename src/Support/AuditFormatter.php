@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\Support;
 
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\RecordkeeperPlugin;
 
