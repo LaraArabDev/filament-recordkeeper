@@ -73,7 +73,7 @@ Filament Recordkeeper is a **Filament 5 plugin** that provides a complete admin 
 | PHP | 8.2, 8.3, or 8.4 |
 | Laravel | 11, 12, or 13 |
 | Filament | 5.x |
-| laraarabdev/recordkeeper | ^1.0 (auto-installed) |
+| laraarabdev/recordkeeper | ^0.1 (auto-installed) |
 
 ---
 
@@ -536,7 +536,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 | PHP | 8.2، 8.3، أو 8.4 |
 | Laravel | 11، 12، أو 13 |
 | Filament | 5.x |
-| laraarabdev/recordkeeper | ^1.0 (يُثبّت تلقائياً) |
+| laraarabdev/recordkeeper | ^0.1 (يُثبّت تلقائياً) |
 
 ### التثبيت
 
