@@ -219,7 +219,7 @@ class AuditResourceRenderTest extends TestCase
     }
 
     #[Test]
-    public function list_page_renders_toggleable_columns(): void
+    public function list_page_has_toggleable_columns(): void
     {
         Audit::insert([
             [
@@ -236,16 +236,18 @@ class AuditResourceRenderTest extends TestCase
         ]);
 
         Livewire::test(ListAudits::class)
-            ->assertCanRenderTableColumn('guard')
-            ->assertCanRenderTableColumn('batch_id')
-            ->assertCanRenderTableColumn('ip_address')
-            ->assertCanRenderTableColumn('url');
+            ->assertTableColumnExists('guard')
+            ->assertTableColumnExists('batch_id')
+            ->assertTableColumnExists('ip_address')
+            ->assertTableColumnExists('url');
     }
 
     #[Test]
     public function list_page_has_header_widgets(): void
     {
-        $widgets = ListAudits::getHeaderWidgets();
+        $method = new \ReflectionMethod(ListAudits::class, 'getHeaderWidgets');
+        $page = new ListAudits;
+        $widgets = $method->invoke($page);
 
         $this->assertContains(ActorStatsWidget::class, $widgets);
     }
