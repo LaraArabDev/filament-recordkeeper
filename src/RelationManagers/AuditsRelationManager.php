@@ -7,6 +7,7 @@ namespace LaraArabDev\RecordkeeperFilament\RelationManagers;
 use Filament\Actions\ViewAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Resources\Concerns\AuditTableSchema;
@@ -19,7 +20,7 @@ class AuditsRelationManager extends RelationManager
 {
     protected static string $relationship = 'audits';
 
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('filament-recordkeeper::audit.relation.title');
     }
