@@ -63,7 +63,7 @@ jobs:
         run: vendor/bin/phpunit --coverage-clover coverage.xml
 
       - name: Upload coverage reports to Codecov
-        if: matrix.php == '8.3' && matrix.laravel == '12.*'
+        if: matrix.php == '8.4' && matrix.laravel == '12.*'
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
