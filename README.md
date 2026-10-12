@@ -14,7 +14,7 @@
     <a href="https://packagist.org/packages/laraarabdev/filament-recordkeeper"><img src="https://img.shields.io/packagist/l/laraarabdev/filament-recordkeeper.svg?style=flat-square" alt="License"></a>
     <a href="https://packagist.org/packages/laraarabdev/filament-recordkeeper"><img src="https://img.shields.io/packagist/php-v/laraarabdev/filament-recordkeeper.svg?style=flat-square" alt="PHP"></a>
     <a href="https://filamentphp.com"><img src="https://img.shields.io/badge/filament-5.x-orange?style=flat-square" alt="Filament"></a>
-    <a href="https://laravel.com"><img src="https://img.shields.io/badge/laravel-11.x%20%7C%2012.x-red?style=flat-square" alt="Laravel"></a>
+    <a href="https://laravel.com"><img src="https://img.shields.io/badge/laravel-11.x%20%7C%2012.x%20%7C%2013.x-red?style=flat-square" alt="Laravel"></a>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@
     A Filament 5 plugin that gives you a full admin UI on top of
     <a href="https://github.com/LaraArabDev/recordkeeper"><code>laraarabdev/recordkeeper</code></a>
     — browse audits, view diffs, rollback changes, and monitor command performance from your panel.<br>
-    PHP 8.2 – 8.4 · Laravel 11 / 12 · Filament 5
+    PHP 8.2 – 8.4 · Laravel 11 / 12 / 13 · Filament 5
 </p>
 
 <p align="center">
@@ -71,7 +71,7 @@ Filament Recordkeeper is a **Filament 5 plugin** that provides a complete admin 
 | Requirement | Version |
 | --- | --- |
 | PHP | 8.2, 8.3, or 8.4 |
-| Laravel | 11 or 12 |
+| Laravel | 11, 12, or 13 |
 | Filament | 5.x |
 | laraarabdev/recordkeeper | ^1.0 (auto-installed) |
 
@@ -534,7 +534,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 | المتطلب | الإصدار |
 | --- | --- |
 | PHP | 8.2، 8.3، أو 8.4 |
-| Laravel | 11 أو 12 |
+| Laravel | 11، 12، أو 13 |
 | Filament | 5.x |
 | laraarabdev/recordkeeper | ^1.0 (يُثبّت تلقائياً) |
 
