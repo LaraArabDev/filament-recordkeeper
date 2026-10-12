@@ -9,6 +9,7 @@ use LaraArabDev\Recordkeeper\Models\AuditHttpRequest;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ListAudits;
 use LaraArabDev\RecordkeeperFilament\Resources\Pages\ViewAudit;
 use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
+use LaraArabDev\RecordkeeperFilament\Widgets\ActorStatsWidget;
 use LaraArabDev\RecordkeeperFilament\Widgets\AuditTimeline;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -176,5 +177,104 @@ class AuditResourceRenderTest extends TestCase
 
         Livewire::test(AuditTimeline::class)
             ->assertCanSeeTableRecords(Audit::all());
+    }
+
+    #[Test]
+    public function list_page_can_filter_by_guard(): void
+    {
+        Audit::insert([
+            ['event' => 'created', 'auditable_type' => $this->auditableType(), 'auditable_id' => 1, 'guard' => 'web', 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'created', 'auditable_type' => $this->auditableType(), 'auditable_id' => 2, 'guard' => 'api', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        Livewire::test(ListAudits::class)
+            ->filterTable('guard', 'web')
+            ->assertCanSeeTableRecords(Audit::where('guard', 'web')->get())
+            ->assertCanNotSeeTableRecords(Audit::where('guard', 'api')->get());
+    }
+
+    #[Test]
+    public function list_page_can_filter_by_actor_type(): void
+    {
+        Audit::insert([
+            ['event' => 'created', 'auditable_type' => $this->auditableType(), 'auditable_id' => 1, 'user_type' => 'App\\Models\\User', 'user_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['event' => 'created', 'auditable_type' => $this->auditableType(), 'auditable_id' => 2, 'user_type' => 'App\\Models\\Admin', 'user_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        Livewire::test(ListAudits::class)
+            ->filterTable('user_type', 'App\\Models\\User')
+            ->assertCanSeeTableRecords(Audit::where('user_type', 'App\\Models\\User')->get())
+            ->assertCanNotSeeTableRecords(Audit::where('user_type', 'App\\Models\\Admin')->get());
+    }
+
+    #[Test]
+    public function list_page_has_bulk_actions(): void
+    {
+        Audit::insert([
+            ['event' => 'created', 'auditable_type' => $this->auditableType(), 'auditable_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        Livewire::test(ListAudits::class)
+            ->assertTableBulkActionExists('delete');
+    }
+
+    #[Test]
+    public function list_page_has_toggleable_columns(): void
+    {
+        Audit::insert([
+            [
+                'event' => 'created',
+                'auditable_type' => $this->auditableType(),
+                'auditable_id' => 1,
+                'guard' => 'web',
+                'batch_id' => 'batch-001',
+                'ip_address' => '10.0.0.1',
+                'url' => 'https://example.com/test',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        Livewire::test(ListAudits::class)
+            ->assertTableColumnExists('guard')
+            ->assertTableColumnExists('batch_id')
+            ->assertTableColumnExists('ip_address')
+            ->assertTableColumnExists('url');
+    }
+
+    #[Test]
+    public function list_page_has_header_widgets(): void
+    {
+        $method = new \ReflectionMethod(ListAudits::class, 'getHeaderWidgets');
+        $page = new ListAudits;
+        $widgets = $method->invoke($page);
+
+        $this->assertContains(ActorStatsWidget::class, $widgets);
+    }
+
+    #[Test]
+    public function actor_stats_widget_renders_successfully(): void
+    {
+        Livewire::test(ActorStatsWidget::class)
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function view_page_renders_infolist_with_context(): void
+    {
+        $audit = Audit::create([
+            'event' => 'updated',
+            'auditable_type' => $this->auditableType(),
+            'auditable_id' => 1,
+            'user_id' => 3,
+            'user_type' => 'App\\Models\\User',
+            'guard' => 'api',
+            'old_values' => ['name' => 'Old'],
+            'new_values' => ['name' => 'New'],
+            'context' => ['command' => 'artisan:test'],
+        ]);
+
+        Livewire::test(ViewAudit::class, ['record' => $audit->getKey()])
+            ->assertSuccessful();
     }
 }

@@ -28,14 +28,14 @@ class ActorStatsWidget extends StatsOverviewWidget
 
         $totalActors = (int) Audit::query()
             ->whereNotNull('user_id')
-            ->distinct('user_type', 'user_id')
-            ->count();
+            ->selectRaw('COUNT(DISTINCT user_type || user_id) as cnt')
+            ->value('cnt');
 
         $todayActors = (int) Audit::query()
             ->whereNotNull('user_id')
             ->where('created_at', '>=', Carbon::today())
-            ->distinct('user_type', 'user_id')
-            ->count();
+            ->selectRaw('COUNT(DISTINCT user_type || user_id) as cnt')
+            ->value('cnt');
 
         $systemActions = (int) Audit::query()
             ->whereNull('user_id')
