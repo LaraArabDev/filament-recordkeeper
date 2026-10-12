@@ -9,9 +9,6 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
 use LaraArabDev\Recordkeeper\Models\Audit;
 
-/**
- * Resource page widget displaying actor-focused audit statistics.
- */
 class ActorStatsWidget extends StatsOverviewWidget
 {
     /**
@@ -28,13 +25,13 @@ class ActorStatsWidget extends StatsOverviewWidget
 
         $totalActors = (int) Audit::query()
             ->whereNotNull('user_id')
-            ->selectRaw('COUNT(DISTINCT user_type || user_id) as cnt')
+            ->selectRaw('COUNT(DISTINCT CONCAT(COALESCE(user_type, \'\'), \':\', user_id)) as cnt')
             ->value('cnt');
 
         $todayActors = (int) Audit::query()
             ->whereNotNull('user_id')
             ->where('created_at', '>=', Carbon::today())
-            ->selectRaw('COUNT(DISTINCT user_type || user_id) as cnt')
+            ->selectRaw('COUNT(DISTINCT CONCAT(COALESCE(user_type, \'\'), \':\', user_id)) as cnt')
             ->value('cnt');
 
         $systemActions = (int) Audit::query()
@@ -58,19 +55,19 @@ class ActorStatsWidget extends StatsOverviewWidget
         $stats = self::actorStats();
 
         return [
-            Stat::make('Total Actors', number_format($stats['total_actors']))
+            Stat::make(__('filament-recordkeeper::audit.widgets.total_actors'), number_format($stats['total_actors']))
                 ->icon('heroicon-o-users'),
 
-            Stat::make('Most Active', $stats['most_active_id'])
-                ->description($stats['most_active_count'].' audits')
+            Stat::make(__('filament-recordkeeper::audit.widgets.most_active'), $stats['most_active_id'])
+                ->description(__('filament-recordkeeper::audit.widgets.audits_count', ['count' => $stats['most_active_count']]))
                 ->icon('heroicon-o-star'),
 
-            Stat::make('Active Today', number_format($stats['today_actors']))
+            Stat::make(__('filament-recordkeeper::audit.widgets.active_today'), number_format($stats['today_actors']))
                 ->icon('heroicon-o-user-group')
                 ->color('success'),
 
-            Stat::make('System Actions', number_format($stats['system_actions']))
-                ->description('No actor attributed')
+            Stat::make(__('filament-recordkeeper::audit.widgets.system_actions'), number_format($stats['system_actions']))
+                ->description(__('filament-recordkeeper::audit.widgets.no_actor'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('gray'),
         ];

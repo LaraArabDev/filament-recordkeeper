@@ -9,9 +9,6 @@ use Filament\Widgets\TableWidget;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Resources\Concerns\AuditTableSchema;
 
-/**
- * Dashboard widget showing a compact table of recent audit activity.
- */
 class AuditTimeline extends TableWidget
 {
     protected static ?int $sort = 99;
@@ -21,7 +18,7 @@ class AuditTimeline extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Recent Audit Activity')
+            ->heading(__('filament-recordkeeper::audit.widgets.recent_activity'))
             ->query(Audit::query()->latest())
             ->paginated([20])
             ->columns(AuditTableSchema::coreColumns());

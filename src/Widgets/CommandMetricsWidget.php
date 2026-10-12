@@ -12,7 +12,10 @@ use LaraArabDev\Recordkeeper\Models\Audit;
  */
 class CommandMetricsWidget extends ChartWidget
 {
-    protected ?string $heading = 'Command Performance';
+    public function getHeading(): ?string
+    {
+        return __('filament-recordkeeper::audit.widgets.command_performance');
+    }
 
     protected static ?int $sort = 3;
 
@@ -75,23 +78,24 @@ class CommandMetricsWidget extends ChartWidget
         $colors = [];
 
         foreach ($runs as $run) {
+            $ctx = $run->context ?? [];
             $labels[] = $run->created_at?->format('m/d H:i') ?? '?';
-            $durations[] = $run->context['duration_ms'] ?? 0;
-            $auditCounts[] = $run->context['audit_count'] ?? 0;
-            $colors[] = ! empty($run->context['anomaly']) ? 'rgba(239,68,68,0.7)' : 'rgba(99,102,241,0.7)';
+            $durations[] = $ctx['duration_ms'] ?? 0;
+            $auditCounts[] = $ctx['audit_count'] ?? 0;
+            $colors[] = ! empty($ctx['anomaly']) ? 'rgba(239,68,68,0.7)' : 'rgba(99,102,241,0.7)';
         }
 
         return [
             'labels' => $labels,
             'datasets' => [
                 [
-                    'label' => 'Duration (ms)',
+                    'label' => __('filament-recordkeeper::audit.widgets.duration_ms'),
                     'data' => $durations,
                     'backgroundColor' => $colors,
                     'yAxisID' => 'y',
                 ],
                 [
-                    'label' => 'Audit Impact',
+                    'label' => __('filament-recordkeeper::audit.widgets.audit_impact'),
                     'data' => $auditCounts,
                     'backgroundColor' => 'rgba(16,185,129,0.5)',
                     'yAxisID' => 'y1',
@@ -106,8 +110,8 @@ class CommandMetricsWidget extends ChartWidget
     {
         return [
             'scales' => [
-                'y' => ['position' => 'left', 'title' => ['display' => true, 'text' => 'Duration (ms)']],
-                'y1' => ['position' => 'right', 'grid' => ['drawOnChartArea' => false], 'title' => ['display' => true, 'text' => 'Audit Impact']],
+                'y' => ['position' => 'left', 'title' => ['display' => true, 'text' => __('filament-recordkeeper::audit.widgets.duration_ms')]],
+                'y1' => ['position' => 'right', 'grid' => ['drawOnChartArea' => false], 'title' => ['display' => true, 'text' => __('filament-recordkeeper::audit.widgets.audit_impact')]],
             ],
         ];
     }

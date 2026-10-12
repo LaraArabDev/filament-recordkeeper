@@ -20,23 +20,24 @@ final class AuditTableSchema
     {
         return [
             TextColumn::make('created_at')
-                ->label('Time')
+                ->label(__('filament-recordkeeper::audit.columns.time'))
                 ->since()
                 ->sortable()
                 ->tooltip(fn ($record) => $record->created_at?->toIso8601String()),
 
             TextColumn::make('event')
+                ->label(__('filament-recordkeeper::audit.columns.event'))
                 ->badge()
                 ->color(fn (string $state): string => AuditFormatter::eventColor($state))
                 ->searchable(),
 
             TextColumn::make('auditable_type')
-                ->label('Subject')
+                ->label(__('filament-recordkeeper::audit.columns.subject'))
                 ->formatStateUsing(fn ($state, $record) => AuditFormatter::subjectLabel($state, $record->auditable_id))
                 ->searchable(),
 
             TextColumn::make('user_id')
-                ->label('Actor')
+                ->label(__('filament-recordkeeper::audit.columns.actor'))
                 ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
         ];
     }
@@ -50,6 +51,7 @@ final class AuditTableSchema
             ...self::coreColumns(),
 
             TextColumn::make('guard')
+                ->label(__('filament-recordkeeper::audit.columns.guard'))
                 ->badge()
                 ->color(fn (?string $state): string => match ($state) {
                     'web' => 'gray',
@@ -59,14 +61,15 @@ final class AuditTableSchema
                 ->toggleable(isToggledHiddenByDefault: true),
 
             TextColumn::make('batch_id')
-                ->label('Batch')
+                ->label(__('filament-recordkeeper::audit.columns.batch'))
                 ->toggleable(isToggledHiddenByDefault: true),
 
             TextColumn::make('ip_address')
-                ->label('IP')
+                ->label(__('filament-recordkeeper::audit.columns.ip'))
                 ->toggleable(isToggledHiddenByDefault: true),
 
             TextColumn::make('url')
+                ->label(__('filament-recordkeeper::audit.columns.url'))
                 ->toggleable(isToggledHiddenByDefault: true)
                 ->limit(50),
         ];
@@ -91,7 +94,7 @@ final class AuditTableSchema
         return [
             BulkActionGroup::make([
                 DeleteBulkAction::make()
-                    ->label('Prune selected')
+                    ->label(__('filament-recordkeeper::audit.actions.prune_selected'))
                     ->visible(fn () => auth()->user()?->can('prune_audits') ?? false),
             ]),
         ];

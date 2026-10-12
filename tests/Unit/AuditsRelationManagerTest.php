@@ -22,10 +22,10 @@ class AuditsRelationManagerTest extends TestCase
     #[Test]
     public function title_is_history(): void
     {
-        $reflection = new \ReflectionClass(AuditsRelationManager::class);
-        $property = $reflection->getProperty('title');
-
-        $this->assertSame('History', $property->getDefaultValue());
+        $this->assertSame(
+            'History',
+            __('filament-recordkeeper::audit.relation.title')
+        );
     }
 
     #[Test]

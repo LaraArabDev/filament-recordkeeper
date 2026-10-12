@@ -64,6 +64,12 @@ final class AuditFormatter
             ]))
             ->first();
 
+        $zero = (object) ['total' => 0, 'created' => 0, 'updated' => 0, 'deleted' => 0, 'routes' => 0, 'actors' => 0];
+
+        if ($row === null) {
+            return self::$eventCountsCache = $zero;
+        }
+
         return self::$eventCountsCache = (object) [
             'total' => (int) $row->total,
             'created' => (int) $row->created,
@@ -82,7 +88,7 @@ final class AuditFormatter
     public static function revertAction(): Action
     {
         return Action::make('revert')
-            ->label('Revert')
+            ->label(__('filament-recordkeeper::audit.actions.revert'))
             ->icon('heroicon-o-arrow-uturn-left')
             ->color('warning')
             ->requiresConfirmation()

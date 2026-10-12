@@ -11,9 +11,6 @@ use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 use LaraArabDev\RecordkeeperFilament\Widgets\ActorStatsWidget;
 
-/**
- * List page for audit records with event-type tabs.
- */
 class ListAudits extends ListRecords
 {
     protected static string $resource = AuditResource::class;
@@ -30,22 +27,22 @@ class ListAudits extends ListRecords
         $counts = AuditFormatter::eventCounts();
 
         return [
-            'all' => Tab::make('All')
+            'all' => Tab::make(__('filament-recordkeeper::audit.tabs.all'))
                 ->badge($counts->total),
 
-            'created' => Tab::make('Created')
+            'created' => Tab::make(__('filament-recordkeeper::audit.tabs.created'))
                 ->modifyQueryUsing(fn (Builder $q) => $q->where('event', 'created'))
                 ->badge($counts->created),
 
-            'updated' => Tab::make('Updated')
+            'updated' => Tab::make(__('filament-recordkeeper::audit.tabs.updated'))
                 ->modifyQueryUsing(fn (Builder $q) => $q->where('event', 'updated'))
                 ->badge($counts->updated),
 
-            'deleted' => Tab::make('Deleted')
+            'deleted' => Tab::make(__('filament-recordkeeper::audit.tabs.deleted'))
                 ->modifyQueryUsing(fn (Builder $q) => $q->whereIn('event', ['deleted', 'forceDeleted']))
                 ->badge($counts->deleted),
 
-            'routes' => Tab::make('Routes')
+            'routes' => Tab::make(__('filament-recordkeeper::audit.tabs.routes'))
                 ->modifyQueryUsing(fn (Builder $q) => $q->routeHits())
                 ->badge($counts->routes),
         ];

@@ -28,6 +28,16 @@ class AuditResource extends Resource
 
     protected static ?string $slug = 'audits';
 
+    public static function getModelLabel(): string
+    {
+        return __('filament-recordkeeper::audit.resource.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('filament-recordkeeper::audit.resource.plural_label');
+    }
+
     public static function getNavigationGroup(): string|UnitEnum|null
     {
         return RecordkeeperPlugin::get()->getNavigationGroup();

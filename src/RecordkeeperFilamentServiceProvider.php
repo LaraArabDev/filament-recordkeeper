@@ -20,6 +20,7 @@ class RecordkeeperFilamentServiceProvider extends PackageServiceProvider
     {
         $package
             ->name(static::$name)
-            ->hasViews(static::$viewNamespace);
+            ->hasViews(static::$viewNamespace)
+            ->hasTranslations();
     }
 }

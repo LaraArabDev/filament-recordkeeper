@@ -25,7 +25,7 @@ class ViewAudit extends ViewRecord
 
         return [
             Action::make('revert')
-                ->label('Revert this change')
+                ->label(__('filament-recordkeeper::audit.actions.revert_this_change'))
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('warning')
                 ->requiresConfirmation()

@@ -19,7 +19,10 @@ class AuditsRelationManager extends RelationManager
 {
     protected static string $relationship = 'audits';
 
-    protected static ?string $title = 'History';
+    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    {
+        return __('filament-recordkeeper::audit.relation.title');
+    }
 
     protected static string|\BackedEnum|null $icon = 'heroicon-o-clock';
 

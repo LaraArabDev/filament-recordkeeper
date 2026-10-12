@@ -19,39 +19,53 @@ final class AuditInfolistSchema
     public static function make(): array
     {
         return [
-            Section::make('Overview')
+            Section::make(__('filament-recordkeeper::audit.sections.overview'))
                 ->columns(3)
                 ->schema([
-                    TextEntry::make('event')->badge(),
+                    TextEntry::make('event')
+                        ->label(__('filament-recordkeeper::audit.columns.event'))
+                        ->badge(),
                     TextEntry::make('auditable_type')
-                        ->label('Subject')
+                        ->label(__('filament-recordkeeper::audit.columns.subject'))
                         ->formatStateUsing(fn ($state, $record) => AuditFormatter::subjectLabel($state, $record->auditable_id)),
                     TextEntry::make('user_id')
-                        ->label('Actor')
+                        ->label(__('filament-recordkeeper::audit.columns.actor'))
                         ->formatStateUsing(fn ($state, $record) => AuditFormatter::actorLabel($state, $record->user_type)),
-                    TextEntry::make('guard')->badge(),
-                    TextEntry::make('ip_address')->label('IP'),
-                    TextEntry::make('created_at')->label('Time')->dateTime(),
-                    TextEntry::make('batch_id')->label('Batch'),
+                    TextEntry::make('guard')
+                        ->label(__('filament-recordkeeper::audit.columns.guard'))
+                        ->badge(),
+                    TextEntry::make('ip_address')
+                        ->label(__('filament-recordkeeper::audit.columns.ip')),
+                    TextEntry::make('created_at')
+                        ->label(__('filament-recordkeeper::audit.columns.time'))
+                        ->dateTime(),
+                    TextEntry::make('batch_id')
+                        ->label(__('filament-recordkeeper::audit.columns.batch')),
                 ]),
 
-            Section::make('Changes')
+            Section::make(__('filament-recordkeeper::audit.sections.changes'))
                 ->schema([
-                    KeyValueEntry::make('old_values')->label('Before'),
-                    KeyValueEntry::make('new_values')->label('After'),
+                    KeyValueEntry::make('old_values')
+                        ->label(__('filament-recordkeeper::audit.fields.before')),
+                    KeyValueEntry::make('new_values')
+                        ->label(__('filament-recordkeeper::audit.fields.after')),
                 ]),
 
-            Section::make('Context')
+            Section::make(__('filament-recordkeeper::audit.sections.context'))
                 ->schema([KeyValueEntry::make('context')])
                 ->visible(fn (Audit $record) => ! empty($record->context)),
 
-            Section::make('Outbound HTTP Requests')
+            Section::make(__('filament-recordkeeper::audit.sections.http_requests'))
                 ->schema([
                     RepeatableEntry::make('httpRequests')
                         ->schema([
-                            TextEntry::make('method')->badge(),
-                            TextEntry::make('url'),
+                            TextEntry::make('method')
+                                ->label(__('filament-recordkeeper::audit.fields.method'))
+                                ->badge(),
+                            TextEntry::make('url')
+                                ->label(__('filament-recordkeeper::audit.columns.url')),
                             TextEntry::make('status_code')
+                                ->label(__('filament-recordkeeper::audit.fields.status_code'))
                                 ->badge()
                                 ->color(fn (?int $state): string => match (true) {
                                     $state === null => 'gray',
@@ -59,11 +73,16 @@ final class AuditInfolistSchema
                                     $state < 400 => 'warning',
                                     default => 'danger',
                                 }),
-                            TextEntry::make('duration_ms')->suffix(' ms'),
+                            TextEntry::make('duration_ms')
+                                ->label(__('filament-recordkeeper::audit.fields.duration'))
+                                ->suffix(' ms'),
                             TextEntry::make('failed')
+                                ->label(__('filament-recordkeeper::audit.fields.failed'))
                                 ->badge()
                                 ->color(fn (bool $state): string => $state ? 'danger' : 'success')
-                                ->formatStateUsing(fn (bool $state): string => $state ? 'Failed' : 'OK'),
+                                ->formatStateUsing(fn (bool $state): string => $state
+                                    ? __('filament-recordkeeper::audit.status.failed')
+                                    : __('filament-recordkeeper::audit.status.ok')),
                         ])
                         ->columns(5),
                 ])

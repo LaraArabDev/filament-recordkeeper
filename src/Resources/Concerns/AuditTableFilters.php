@@ -21,6 +21,7 @@ final class AuditTableFilters
     {
         return [
             SelectFilter::make('event')
+                ->label(__('filament-recordkeeper::audit.columns.event'))
                 ->multiple()
                 ->options(fn () => Audit::query()
                     ->select('event')
@@ -30,7 +31,7 @@ final class AuditTableFilters
                     ->all()),
 
             SelectFilter::make('auditable_type')
-                ->label('Model')
+                ->label(__('filament-recordkeeper::audit.filters.model'))
                 ->multiple()
                 ->options(fn () => Audit::query()
                     ->select('auditable_type')
@@ -41,7 +42,7 @@ final class AuditTableFilters
                     ->all()),
 
             SelectFilter::make('guard')
-                ->label('Guard')
+                ->label(__('filament-recordkeeper::audit.columns.guard'))
                 ->options(fn () => Audit::query()
                     ->select('guard')
                     ->distinct()
@@ -51,7 +52,7 @@ final class AuditTableFilters
                     ->all()),
 
             SelectFilter::make('user_type')
-                ->label('Actor type')
+                ->label(__('filament-recordkeeper::audit.filters.actor_type'))
                 ->options(fn () => Audit::query()
                     ->select('user_type')
                     ->distinct()
@@ -63,17 +64,23 @@ final class AuditTableFilters
 
             Filter::make('actor')
                 ->form([
-                    TextInput::make('user_id')->label('Actor ID')->numeric(),
+                    TextInput::make('user_id')
+                        ->label(__('filament-recordkeeper::audit.filters.actor_id'))
+                        ->numeric(),
                 ])
                 ->query(fn (Builder $query, array $data) => $data['user_id']
                     ? $query->where('user_id', $data['user_id'])
                     : $query)
-                ->indicateUsing(fn (array $data) => $data['user_id'] ? 'Actor #'.$data['user_id'] : null),
+                ->indicateUsing(fn (array $data) => $data['user_id']
+                    ? __('filament-recordkeeper::audit.columns.actor').' #'.$data['user_id']
+                    : null),
 
             Filter::make('period')
                 ->form([
-                    DatePicker::make('from')->label('From'),
-                    DatePicker::make('until')->label('Until'),
+                    DatePicker::make('from')
+                        ->label(__('filament-recordkeeper::audit.filters.from')),
+                    DatePicker::make('until')
+                        ->label(__('filament-recordkeeper::audit.filters.until')),
                 ])
                 ->query(fn (Builder $query, array $data): Builder => $query
                     ->when($data['from'], fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
@@ -83,17 +90,20 @@ final class AuditTableFilters
                         return $data['from'].' → '.$data['until'];
                     }
 
-                    return $data['from'] ? 'From '.$data['from'] : ($data['until'] ? 'Until '.$data['until'] : null);
+                    return $data['from'] ?? $data['until'] ?? null;
                 }),
 
             Filter::make('batch_id')
-                ->form([TextInput::make('batch_id')->label('Batch ID')])
+                ->form([
+                    TextInput::make('batch_id')
+                        ->label(__('filament-recordkeeper::audit.filters.batch_id')),
+                ])
                 ->query(fn (Builder $query, array $data) => $data['batch_id']
                     ? $query->where('batch_id', $data['batch_id'])
                     : $query),
 
             TernaryFilter::make('rollbackable')
-                ->label('Only rollbackable')
+                ->label(__('filament-recordkeeper::audit.filters.only_rollbackable'))
                 ->queries(
                     true: fn (Builder $q) => $q->rollbackable(),
                     false: fn (Builder $q) => $q->whereNotIn('event', Audit::ROLLBACKABLE_EVENTS),

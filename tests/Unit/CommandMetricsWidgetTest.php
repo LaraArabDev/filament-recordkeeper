@@ -23,10 +23,9 @@ class CommandMetricsWidgetTest extends TestCase
     #[Test]
     public function heading_is_command_performance(): void
     {
-        $reflection = new \ReflectionClass(CommandMetricsWidget::class);
-        $property = $reflection->getProperty('heading');
+        $widget = new CommandMetricsWidget;
 
-        $this->assertSame('Command Performance', $property->getDefaultValue());
+        $this->assertSame('Command Performance', $widget->getHeading());
     }
 
     #[Test]
@@ -148,8 +147,8 @@ class CommandMetricsWidgetTest extends TestCase
 
         $this->assertCount(2, $data['labels']);
         $this->assertCount(2, $data['datasets']);
-        $this->assertSame('Duration (ms)', $data['datasets'][0]['label']);
-        $this->assertSame('Audit Impact', $data['datasets'][1]['label']);
+        $this->assertSame(__('filament-recordkeeper::audit.widgets.duration_ms'), $data['datasets'][0]['label']);
+        $this->assertSame(__('filament-recordkeeper::audit.widgets.audit_impact'), $data['datasets'][1]['label']);
         $this->assertSame([150, 200], $data['datasets'][0]['data']);
         $this->assertSame([3, 5], $data['datasets'][1]['data']);
     }
