@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace LaraArabDev\RecordkeeperFilament\Resources;
 
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -195,12 +197,12 @@ class AuditResource extends Resource
             ->filtersFormColumns(2)
             ->persistFiltersInSession()
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                ViewAction::make(),
                 AuditFormatter::revertAction(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->label('Prune selected')
                         ->visible(fn () => auth()->user()?->can('prune_audits') ?? false),
                 ]),

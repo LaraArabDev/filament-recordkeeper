@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\RelationManagers;
 
+use Filament\Actions\ViewAction;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use LaraArabDev\Recordkeeper\Models\Audit;
@@ -43,7 +43,7 @@ class AuditsRelationManager extends RelationManager
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
-                Tables\Actions\ViewAction::make()
+                ViewAction::make()
                     ->url(fn (Audit $record) => AuditResource::getUrl('view', ['record' => $record]))
                     ->openUrlInNewTab(),
 

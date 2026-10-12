@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace LaraArabDev\RecordkeeperFilament\Tests\Unit;
 
-use Filament\Facades\Filament;
 use LaraArabDev\Recordkeeper\Models\Audit;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 use LaraArabDev\RecordkeeperFilament\Tests\TestCase;
@@ -92,16 +91,22 @@ class AuditFormatterTest extends TestCase
     }
 
     #[Test]
-    public function can_revert_returns_false_without_panel_context(): void
+    public function can_revert_returns_true_when_all_conditions_met(): void
     {
         config(['recordkeeper.rollback.enabled' => true]);
-
-        Filament::setCurrentPanel(null);
 
         $audit = $this->createMock(Audit::class);
         $audit->method('isRollbackable')->willReturn(true);
 
-        $this->assertFalse(AuditFormatter::canRevert($audit));
+        $this->assertTrue(AuditFormatter::canRevert($audit));
+    }
+
+    #[Test]
+    public function revert_action_returns_configured_action(): void
+    {
+        $action = AuditFormatter::revertAction();
+
+        $this->assertSame('revert', $action->getName());
     }
 
     #[Test]

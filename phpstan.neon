@@ -10,27 +10,6 @@ parameters:
         -
             identifier: trait.unused
 
-        # Filament Tables/Infolists action classes not resolved by Larastan
-        -
-            message: '#Call to static method make\(\) on an unknown class Filament\\(Tables\\Actions|Infolists\\Components)\\#'
-            paths:
-                - src/Resources/AuditResource.php
-                - src/RelationManagers/AuditsRelationManager.php
-
-        # AuditFormatter::revertAction() returns Filament\Tables\Actions\Action (unresolved by Larastan)
-        -
-            messages:
-                - '#has invalid return type Filament\\Tables\\Actions\\Action#'
-                - '#Call to static method make\(\) on an unknown class Filament\\Tables\\Actions\\Action#'
-            path: src/Support/AuditFormatter.php
-
-        # Table::actions() type mismatch from mixed ViewAction/revertAction returns
-        -
-            message: '#Parameter \#1 \$actions of method Filament\\Tables\\Table::actions\(\)#'
-            paths:
-                - src/Resources/AuditResource.php
-                - src/RelationManagers/AuditsRelationManager.php
-
         # Core Audit model scopes (rollbackable, routeHits) called on Builder
         -
             message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::(rollbackable|routeHits)\(\)#'
