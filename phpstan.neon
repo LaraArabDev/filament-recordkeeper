@@ -14,7 +14,7 @@ parameters:
         -
             message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::(rollbackable|routeHits)\(\)#'
             paths:
-                - src/Resources/AuditResource.php
+                - src/Resources/Concerns/AuditTableFilters.php
                 - src/Resources/Pages/ListAudits.php
 
         # view() function string not recognized as view-string
