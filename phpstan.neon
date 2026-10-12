@@ -24,5 +24,7 @@ parameters:
 
         # Dynamic properties from selectRaw aggregate aliases
         -
-            message: '#Access to an undefined property LaraArabDev\\Recordkeeper\\Models\\Audit::\$(total|created|updated|deleted|routes|actors)#'
-            path: src/Support/AuditFormatter.php
+            message: '#Access to an undefined property LaraArabDev\\Recordkeeper\\Models\\Audit::\$(total|created|updated|deleted|routes|actors|audit_count)#'
+            paths:
+                - src/Support/AuditFormatter.php
+                - src/Widgets/ActorStatsWidget.php

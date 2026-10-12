@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use LaraArabDev\RecordkeeperFilament\Resources\AuditResource;
 use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
+use LaraArabDev\RecordkeeperFilament\Widgets\ActorStatsWidget;
 
 /**
  * List page for audit records with event-type tabs.
@@ -16,6 +17,12 @@ use LaraArabDev\RecordkeeperFilament\Support\AuditFormatter;
 class ListAudits extends ListRecords
 {
     protected static string $resource = AuditResource::class;
+
+    /** @return array<class-string> */
+    protected function getHeaderWidgets(): array
+    {
+        return [ActorStatsWidget::class];
+    }
 
     /** @return array<string, Tab> */
     public function getTabs(): array
