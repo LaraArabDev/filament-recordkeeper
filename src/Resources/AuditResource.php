@@ -56,7 +56,7 @@ class AuditResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Audit::query()->with(['auditable']))
+            ->query(Audit::query())
             ->columns(AuditTableSchema::fullColumns())
             ->defaultSort('created_at', 'desc')
             ->filters(AuditTableFilters::make())
